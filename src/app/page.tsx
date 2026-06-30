@@ -100,9 +100,19 @@ export default function Home() {
 
             {/* Detailed Song List */}
             <div>
-              <h2 className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-4 px-1">
-                Songs
-              </h2>
+              <div className="flex items-center justify-between mb-4 px-1">
+                <h2 className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
+                  Songs
+                </h2>
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="text-[10px] text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1 font-semibold cursor-pointer"
+                  >
+                    Showing results for &quot;{searchTerm}&quot; &bull; Clear Filter
+                  </button>
+                )}
+              </div>
               <SongList songs={filteredSongs} />
             </div>
           </div>
