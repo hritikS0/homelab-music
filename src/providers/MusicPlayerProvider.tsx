@@ -27,6 +27,10 @@ interface MusicPlayerContextType {
   scanProgress: string | null;
   triggerScan: () => Promise<void>;
   checkScanStatus: () => Promise<void>;
+
+  // Apple Music style overlay
+  isFullscreenOpen: boolean;
+  setIsFullscreenOpen: (open: boolean) => void;
   
   setActiveSong: (song: Song | null) => void;
   setIsPlaying: (playing: boolean) => void;
@@ -77,6 +81,9 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [isScanning, setIsScanning] = useState(false);
   const [scanSummary, setScanSummary] = useState<any | null>(null);
   const [scanProgress, setScanProgress] = useState<string | null>(null);
+
+  // Fullscreen player state
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -520,6 +527,10 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
         scanProgress,
         triggerScan,
         checkScanStatus,
+
+        // Fullscreen Overlay
+        isFullscreenOpen,
+        setIsFullscreenOpen,
         
         setActiveSong,
         setIsPlaying,

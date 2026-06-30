@@ -32,7 +32,8 @@ export const BottomPlayer: React.FC = () => {
     setVolume,
     seek,
     toggleLoop,
-    toggleShuffle
+    toggleShuffle,
+    setIsFullscreenOpen
   } = useMusicPlayer();
 
   const [imgError, setImgError] = useState(false);
@@ -82,25 +83,30 @@ export const BottomPlayer: React.FC = () => {
         >
           {/* Active Song Info (Left) */}
           <div className="flex items-center gap-3 w-1/4 min-w-[180px]">
-            <div className="h-10 w-10 rounded bg-[#282828] border border-zinc-800/40 flex items-center justify-center shadow-sm shrink-0 overflow-hidden relative">
-              {!imgError ? (
-                <img
-                  src={`/api/v1/songs/artwork/${activeSong.id}`}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-cover animate-fade-in"
-                  onError={() => setImgError(true)}
-                />
-              ) : (
-                <Music size={15} className="text-zinc-400" />
-              )}
-            </div>
-            <div className="min-w-0 pr-2">
-              <span className="block text-xs font-semibold text-zinc-100 hover:underline cursor-pointer truncate">
-                {activeSong.title}
-              </span>
-              <span className="block text-[10px] text-zinc-400 hover:underline cursor-pointer truncate mt-0.5">
-                {activeSong.artist || 'Unknown Artist'}
-              </span>
+            <div 
+              onClick={() => setIsFullscreenOpen(true)}
+              className="flex items-center gap-3 cursor-pointer group/meta min-w-0 flex-grow"
+            >
+              <div className="h-10 w-10 rounded bg-[#282828] border border-zinc-800/40 flex items-center justify-center shadow-sm shrink-0 overflow-hidden relative group-hover/meta:opacity-80 transition-opacity">
+                {!imgError ? (
+                  <img
+                    src={`/api/v1/songs/artwork/${activeSong.id}`}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover animate-fade-in"
+                    onError={() => setImgError(true)}
+                  />
+                ) : (
+                  <Music size={15} className="text-zinc-400" />
+                )}
+              </div>
+              <div className="min-w-0 pr-2">
+                <span className="block text-xs font-semibold text-zinc-100 group-hover/meta:text-emerald-400 truncate transition-colors">
+                  {activeSong.title}
+                </span>
+                <span className="block text-[10px] text-zinc-400 truncate mt-0.5">
+                  {activeSong.artist || 'Unknown Artist'}
+                </span>
+              </div>
             </div>
             <button className="p-1 rounded text-zinc-400 hover:text-white transition-colors shrink-0">
               <Heart size={13} />

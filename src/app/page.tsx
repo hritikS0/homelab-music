@@ -9,6 +9,7 @@ import { BottomPlayer } from '@/components/music/BottomPlayer';
 import { SongList } from '@/components/music/SongList';
 import { AlbumCard } from '@/components/music/AlbumCard';
 import { EmptyLibrary } from '@/components/music/EmptyLibrary';
+import { FullscreenPlayer } from '@/components/music/FullscreenPlayer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Music } from 'lucide-react';
 
@@ -16,7 +17,9 @@ export default function Home() {
   const {
     songs,
     error,
-    setError
+    setError,
+    isFullscreenOpen,
+    setIsFullscreenOpen
   } = useMusicPlayer();
 
   const [activeTab, setActiveTab] = useState('library');
@@ -305,6 +308,16 @@ export default function Home() {
 
       {/* Persistent Elegant Bottom Playback Bar */}
       <BottomPlayer />
+
+      {/* Fullscreen Overlay Apple Music Player */}
+      <AnimatePresence>
+        {isFullscreenOpen && (
+          <FullscreenPlayer
+            isOpen={isFullscreenOpen}
+            onClose={() => setIsFullscreenOpen(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
