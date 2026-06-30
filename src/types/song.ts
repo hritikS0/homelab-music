@@ -6,7 +6,7 @@ export interface Song {
   filePath: string;
   mimeType: string;
   size: number;
-  duration: number;
+  duration: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,7 +18,7 @@ export interface CreateSongInput {
   filePath: string;
   mimeType: string;
   size: number;
-  duration: number;
+  duration: number | null;
 }
 
 export interface UpdateSongInput {
@@ -28,5 +28,5 @@ export interface UpdateSongInput {
   filePath?: string;
   mimeType?: string;
   size?: number;
-  duration?: number;
+  duration?: number | null;
 }

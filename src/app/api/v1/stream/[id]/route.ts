@@ -6,12 +6,16 @@ import { SongService } from '@/services/songs/index';
 import { songRepository } from '@/repositories/songs/index';
 import { handleApiError } from '@/lib/response';
 import { AppError } from '@/utils/appError';
+import { logger } from '@/config/logger';
 
 type RouteParams = {
   params: Promise<{ id: string }> | { id: string };
 };
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
+  const method = req.method;
+  const path = req.nextUrl.pathname;
+  logger.info(`[REQUEST START] ${method} ${path}`);
   try {
     const { id } = await params;
     const songService = new SongService(songRepository);
@@ -42,6 +46,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
       // Validate range
       if (isNaN(start) || start >= fileSize || end >= fileSize || start > end) {
+        logger.info(`[REQUEST SUCCESS] ${method} ${path} (Range Not Satisfiable)`);
         return new NextResponse(null, {
           status: 416,
           headers: {
@@ -55,6 +60,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       const fileStream = fs.createReadStream(filePath, { start, end });
       const webStream = Readable.toWeb(fileStream);
 
+      logger.info(`[REQUEST SUCCESS] ${method} ${path} (Partial Content)`);
       return new NextResponse(webStream as unknown as ReadableStream, {
         status: 206,
         headers: {
@@ -69,6 +75,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       const fileStream = fs.createReadStream(filePath);
       const webStream = Readable.toWeb(fileStream);
 
+      logger.info(`[REQUEST SUCCESS] ${method} ${path} (OK)`);
       return new NextResponse(webStream as unknown as ReadableStream, {
         status: 200,
         headers: {
@@ -79,6 +86,6 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       });
     }
   } catch (error) {
-    return handleApiError(error);
+    return handleApiError(error, req);
   }
 }

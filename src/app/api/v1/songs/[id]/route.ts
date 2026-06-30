@@ -3,12 +3,16 @@ import { SongService } from '@/services/songs/index';
 import { songRepository } from '@/repositories/songs/index';
 import { handleApiError } from '@/lib/response';
 import { AppError } from '@/utils/appError';
+import { logger } from '@/config/logger';
 
 type RouteParams = {
   params: Promise<{ id: string }> | { id: string };
 };
 
-export async function GET(_req: NextRequest, { params }: RouteParams) {
+export async function GET(req: NextRequest, { params }: RouteParams) {
+  const method = req.method;
+  const path = req.nextUrl.pathname;
+  logger.info(`[REQUEST START] ${method} ${path}`);
   try {
     const { id } = await params;
     const songService = new SongService(songRepository);
@@ -18,20 +22,25 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
       throw AppError.notFound('Song not found');
     }
 
+    logger.info(`[REQUEST SUCCESS] ${method} ${path}`);
     return NextResponse.json(song);
   } catch (error) {
-    return handleApiError(error);
+    return handleApiError(error, req);
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: RouteParams) {
+export async function DELETE(req: NextRequest, { params }: RouteParams) {
+  const method = req.method;
+  const path = req.nextUrl.pathname;
+  logger.info(`[REQUEST START] ${method} ${path}`);
   try {
     const { id } = await params;
     const songService = new SongService(songRepository);
     await songService.deleteSong(id);
 
+    logger.info(`[REQUEST SUCCESS] ${method} ${path}`);
     return NextResponse.json({ success: true, message: 'Song deleted successfully' });
   } catch (error) {
-    return handleApiError(error);
+    return handleApiError(error, req);
   }
 }

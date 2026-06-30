@@ -1,3 +1,4 @@
+/* eslint-disable no-console, @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps */
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -5,7 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 interface Song {
   id: string;
   title: string;
-  duration: number;
+  duration: number | null;
   size: number;
 }
 
@@ -16,14 +17,126 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Debug Panel and Status States
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'failed'>('idle');
+  const [currentRequest, setCurrentRequest] = useState<string | null>(null);
+  const [currentResponse, setCurrentResponse] = useState<string | null>(null);
+  const [currentError, setCurrentError] = useState<string | null>(null);
+  const [currentProgress, setCurrentProgress] = useState<string | null>(null);
+
+  // Network Layer Wrapper
+  const safeFetch = async (url: string, options?: RequestInit): Promise<any> => {
+    let response: Response;
+    try {
+      response = await fetch(url, options);
+    } catch (err: any) {
+      console.error('Network request failed');
+      console.error('JavaScript Error:', err.message || err);
+      console.error('Stack Trace:', err.stack);
+      throw new Error('Network request failed');
+    }
+
+    let data: any;
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        data = await response.json();
+      } catch (err: any) {
+        console.error('Invalid server response');
+        console.error('JavaScript Error:', err.message || err);
+        console.error('Stack Trace:', err.stack);
+        throw new Error('Invalid server response');
+      }
+    } else {
+      try {
+        const text = await response.text();
+        data = text ? { message: text } : {};
+      } catch {
+        data = {};
+      }
+    }
+
+    if (!response.ok) {
+      const errorMsg = data?.error?.details || data?.message || response.statusText || 'Unknown error';
+      const errorStr = `HTTP ${response.status}: ${errorMsg}`;
+      
+      console.error('HTTP Status:', response.status);
+      console.error('Response Body:', data);
+      const errObj = new Error(errorStr);
+      console.error('JavaScript Error:', errObj.message);
+      console.error('Stack Trace:', errObj.stack);
+
+      throw errObj;
+    }
+
+    return data;
+  };
+
+  // XMLHttpRequest Upload Wrapper for Progress and Console Tracking
+  const xhrUpload = (file: File, onProgress: (pct: number) => void): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/v1/songs/upload');
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const pct = Math.round((e.loaded / e.total) * 100);
+          onProgress(pct);
+        }
+      };
+
+      xhr.onload = () => {
+        let data: any;
+        const contentType = xhr.getResponseHeader('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            data = JSON.parse(xhr.responseText);
+          } catch (err: any) {
+            console.error('Invalid server response');
+            console.error('JavaScript Error:', err.message);
+            console.error('Stack Trace:', err.stack);
+            reject(new Error('Invalid server response'));
+            return;
+          }
+        } else {
+          data = xhr.responseText ? { message: xhr.responseText } : {};
+        }
+
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(data);
+        } else {
+          const errorMsg = data?.error?.details || data?.message || xhr.statusText || 'Unknown error';
+          const errorStr = `HTTP ${xhr.status}: ${errorMsg}`;
+          
+          console.error('HTTP Status:', xhr.status);
+          console.error('Response Body:', data);
+          const errObj = new Error(errorStr);
+          console.error('JavaScript Error:', errObj.message);
+          console.error('Stack Trace:', errObj.stack);
+          
+          reject(errObj);
+        }
+      };
+
+      xhr.onerror = () => {
+        const errObj = new Error('Network request failed');
+        console.error('Network request failed');
+        console.error('JavaScript Error:', errObj.message);
+        reject(errObj);
+      };
+
+      const formData = new FormData();
+      formData.append('file', file);
+      xhr.send(formData);
+    });
+  };
+
   const fetchSongs = async () => {
     try {
-      const res = await fetch('/api/v1/songs');
-      if (!res.ok) throw new Error('Failed to fetch songs');
-      const data = await res.json();
+      const data = await safeFetch('/api/v1/songs');
       setSongs(data);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error loading library');
+    } catch (err: any) {
+      setError(err.message || 'Error loading library');
     }
   };
 
@@ -37,29 +150,32 @@ export default function Home() {
     if (!files || files.length === 0) return;
 
     const file = files[0];
-    const formData = new FormData();
-    formData.append('file', file);
-
+    setUploadStatus('uploading');
     setUploading(true);
     setError(null);
+    setCurrentError(null);
+    setCurrentResponse(null);
+    setCurrentRequest(`POST /api/v1/songs/upload\nPayload: File "${file.name}" (${formatSize(file.size)}, ${file.type || 'unknown MIME'})`);
+    setCurrentProgress('Starting upload...');
 
     try {
-      const res = await fetch('/api/v1/songs/upload', {
-        method: 'POST',
-        body: formData,
+      const data = await xhrUpload(file, (pct) => {
+        setCurrentProgress(`Uploading: ${pct}%`);
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Upload failed');
-      }
+      setCurrentProgress('Upload complete.');
+      setUploadStatus('success');
+      setCurrentResponse(JSON.stringify(data, null, 2));
 
       await fetchSongs();
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to upload song');
+    } catch (err: any) {
+      setUploadStatus('failed');
+      const msg = `Failed to upload: ${err.message}`;
+      setError(msg);
+      setCurrentError(`${err.message}\nStack: ${err.stack || ''}`);
     } finally {
       setUploading(false);
     }
@@ -68,21 +184,20 @@ export default function Home() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this song?')) return;
     try {
-      const res = await fetch(`/api/v1/songs/${id}`, {
+      await safeFetch(`/api/v1/songs/${id}`, {
         method: 'DELETE',
       });
-      if (!res.ok) throw new Error('Failed to delete song');
       if (activeSong?.id === id) {
         setActiveSong(null);
       }
       await fetchSongs();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to delete song');
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete song');
     }
   };
 
-  const formatDuration = (secs: number) => {
-    if (isNaN(secs) || secs === 0) return '0:00';
+  const formatDuration = (secs: number | null) => {
+    if (secs === null || isNaN(secs) || secs === 0) return '0:00';
     const minutes = Math.floor(secs / 60);
     const seconds = Math.floor(secs % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -143,9 +258,35 @@ export default function Home() {
           </div>
         </header>
 
+        {/* Upload Status Overlay Bar */}
+        {uploadStatus !== 'idle' && (
+          <div className={`mb-6 p-4 rounded-lg border text-sm flex items-center justify-between transition-all ${
+            uploadStatus === 'uploading' ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400' :
+            uploadStatus === 'success' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' :
+            'bg-red-500/10 border-red-500/30 text-red-400'
+          }`}>
+            <div className="flex items-center gap-2">
+              {uploadStatus === 'uploading' && (
+                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              )}
+              <span className="font-medium">
+                {uploadStatus === 'uploading' ? 'Uploading...' :
+                 uploadStatus === 'success' ? 'Success! Upload completed.' :
+                 'Upload Failed'}
+              </span>
+            </div>
+            <button onClick={() => setUploadStatus('idle')} className="font-bold opacity-70 hover:opacity-100">
+              &times;
+            </button>
+          </div>
+        )}
+
         {error && (
           <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm mb-6 flex items-start justify-between">
-            <span>{error}</span>
+            <span className="whitespace-pre-wrap">{error}</span>
             <button onClick={() => setError(null)} className="text-red-400/70 hover:text-red-400 font-bold ml-2">
               &times;
             </button>
@@ -213,6 +354,66 @@ export default function Home() {
             </div>
           )}
         </section>
+
+        {/* Development Debug Panel */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-8 border border-zinc-800 bg-zinc-900/80 rounded-xl p-6 relative overflow-hidden">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-500">
+                Dev Debug Panel
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] font-mono text-zinc-300">
+              <div className="space-y-3">
+                <div>
+                  <span className="text-zinc-500 block mb-1">Upload Status</span>
+                  <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
+                    uploadStatus === 'idle' ? 'bg-zinc-800 text-zinc-400' :
+                    uploadStatus === 'uploading' ? 'bg-indigo-500/20 text-indigo-400' :
+                    uploadStatus === 'success' ? 'bg-emerald-500/20 text-emerald-400' :
+                    'bg-red-500/20 text-red-400'
+                  }`}>
+                    {uploadStatus.toUpperCase()}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-zinc-500 block mb-1">Current Progress</span>
+                  <div className="bg-zinc-950 p-2.5 rounded border border-zinc-800/60 max-h-24 overflow-y-auto">
+                    {currentProgress || 'N/A'}
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-zinc-500 block mb-1">Current Request</span>
+                  <pre className="bg-zinc-950 p-2.5 rounded border border-zinc-800/60 whitespace-pre-wrap break-all max-h-40 overflow-y-auto">
+                    {currentRequest || 'N/A'}
+                  </pre>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <span className="text-zinc-500 block mb-1">Current Error</span>
+                  <pre className={`bg-zinc-950 p-2.5 rounded border max-h-40 overflow-y-auto ${
+                    currentError ? 'border-red-900/50 text-red-400' : 'border-zinc-800/60 text-zinc-500'
+                  }`}>
+                    {currentError || 'None'}
+                  </pre>
+                </div>
+
+                <div>
+                  <span className="text-zinc-500 block mb-1">Current Response</span>
+                  <pre className="bg-zinc-950 p-2.5 rounded border border-zinc-800/60 max-h-40 overflow-y-auto">
+                    {currentResponse || 'N/A'}
+                  </pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {activeSong && (
           <footer className="mt-8 border-t border-zinc-800/80 pt-6 pb-4">
