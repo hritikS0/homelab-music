@@ -1,0 +1,29 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Song {
+  id               String   @id @default(uuid())
+  title            String
+  originalFileName String
+  storedFileName   String
+  filePath         String
+  mimeType         String
+  size             Int
+  duration         Float
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
