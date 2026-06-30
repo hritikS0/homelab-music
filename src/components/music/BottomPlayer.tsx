@@ -164,7 +164,10 @@ export const BottomPlayer: React.FC = () => {
                 max="100"
                 value={progressPct}
                 onChange={handleProgressBarChange}
-                className="flex-grow accent-emerald-500"
+                className="flex-grow"
+                style={{
+                  background: `linear-gradient(to right, #10B981 0%, #10B981 ${progressPct}%, rgba(255, 255, 255, 0.15) ${progressPct}%, rgba(255, 255, 255, 0.15) 100%)`
+                }}
               />
               <span className="w-6 text-left">{formatTime(duration)}</span>
             </div>
@@ -181,7 +184,10 @@ export const BottomPlayer: React.FC = () => {
               max="100"
               value={volume * 100}
               onChange={handleVolumeChange}
-              className="w-16 accent-emerald-500"
+              className="w-16"
+              style={{
+                background: `linear-gradient(to right, #10B981 0%, #10B981 ${volume * 100}%, rgba(255, 255, 255, 0.15) ${volume * 100}%, rgba(255, 255, 255, 0.15) 100%)`
+              }}
             />
           </div>
         </motion.div>

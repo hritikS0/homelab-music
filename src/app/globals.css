@@ -52,13 +52,13 @@ body {
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
-  background: transparent;
-  cursor: pointer;
-  height: 12px;
+  height: 3px;
+  border-radius: 999px;
+  outline: none;
+  width: 100%;
 }
 
 input[type="range"]::-webkit-slider-runnable-track {
-  background: rgba(255, 255, 255, 0.1);
   height: 3px;
   border-radius: 999px;
 }
@@ -77,8 +77,4 @@ input[type="range"]::-webkit-slider-thumb {
 
 input[type="range"]:hover::-webkit-slider-thumb {
   opacity: 1;
-}
-
-input[type="range"]:hover::-webkit-slider-runnable-track {
-  background: #10B981; /* Minimal Spotify green volume/playback indicator on hover */
 }

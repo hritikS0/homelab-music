@@ -1,19 +1,36 @@
-# Homelab Music Backend & App Foundation
+# Homelab Music Player
 
-Homelab Music is a self-hosted music streaming platform (similar to Plexamp or Navidrome) built with Next.js, React 19, TypeScript, and Prisma ORM.
+Homelab Music is a lightweight, cross-platform, self-hosted music player built to run efficiently on local servers, including desktop OSs (Ubuntu, macOS, Windows) and mobile environments (Android via Termux). 
 
-This is the production-ready project foundation and architecture setup.
+It features an artwork-dominated, minimalist user interface inspired by premium desktop players like Spotify and Apple Music on macOS.
 
 ---
 
-## Tech Stack
+## Technical Stack & Architecture
 
-- **Framework**: [Next.js 15](https://nextjs.org/) (App Router, React 19, strict TypeScript)
-- **Backend & Database**: Next.js Route Handlers + [Prisma ORM](https://www.prisma.io/) + SQLite
-- **Styling**: Tailwind CSS + shadcn/ui
-- **Auth Shell**: [Auth.js](https://authjs.dev/) placeholder
-- **Logging**: [Pino](https://github.com/pinojs/pino)
-- **Code Quality**: ESLint (Flat Config), Prettier, Husky, lint-staged
+- **Framework**: Next.js 16 (App Router, React 19, strict TypeScript)
+- **Database & Persistence**: Asynchronous JSON-based Repository with serialized write queueing (ensuring complete SQLite/Prisma-free operation to guarantee Termux compatibility without native compilation issues).
+- **Styling**: Tailwind CSS with custom Spotify-style native slider modifications.
+- **Metadata Engine**: `music-metadata` tag parsing.
+- **State Management**: React Context (`MusicPlayerProvider`) coordinating unified playback, timeline seeking, volume adjustments, dynamic XHR file uploads, and directory sync statuses.
+
+---
+
+## Core Features
+
+### 1. Library Scanner (Source of Truth)
+The application indexes files directly from the filesystem directory (`UPLOAD_DIR`).
+- **Flow**: Recursively traverses the directory, computes SHA-256 hashes of file buffers to prevent duplicates if files are renamed or moved, and synchronizes the JSON index database.
+- **Dynamic Fallbacks**: If ID3 tags are missing or corrupted, the scanner falls back to using the filename as the title, `Unknown Artist` as the artist, and `Unknown Album` as the album name.
+- **Auto-Sync**: Automatically runs a background filesystem scan on server startup and immediately after file uploads.
+
+### 2. On-the-Fly Artwork Streaming
+- Resolves ID3-embedded album art pictures directly from audio files on-the-fly and streams them to the browser with HTTP caching.
+- Dynamically falls back to standard vectors if no artwork is present inside the audio metadata tags.
+
+### 3. Native Desktop UX
+- **Two-Column View**: Left sidebar containing navigation items (Library, Albums, Artists, Genres, Favorites) and a main content grid.
+- **Spotify-Inspired Playback Bar**: Persistent bottom bar featuring album art, playback toggle states, dynamic seek sliders, volume controls, and loop/shuffle behaviors.
 
 ---
 
@@ -22,136 +39,85 @@ This is the production-ready project foundation and architecture setup.
 ```text
 homelab-music/
 │
-├── prisma/
-│   └── schema.prisma        # SQLite schema configuration
-│
-├── public/                  # Static assets
+├── storage/
+│   └── songs.json           # Active JSON index database (ignored in git)
 │
 ├── src/
-│   ├── actions/             # Next.js Server Actions
-│   │
 │   ├── app/                 # Next.js App Router root
-│   │   ├── (dashboard)/     # Main dashboard route group
-│   │   ├── (public)/        # Public landing/login route group
 │   │   ├── api/
-│   │   │   ├── health/      # Health check endpoint (/api/health)
-│   │   │   └── v1/          # Versioned API routes
-│   │   ├── globals.css      # Core styles (Tailwind CSS)
-│   │   ├── layout.tsx       # Root layout file
-│   │   └── page.tsx         # Sleek landing page
+│   │   │   ├── health/      # Health check endpoint
+│   │   │   └── v1/          # Versioned API routes (songs, stream, library)
+│   │   ├── globals.css      # Core styles & range slider rules
+│   │   ├── layout.tsx       # Root layout file (wrapped in provider)
+│   │   └── page.tsx         # Redesigned minimalist dashboard view
 │   │
 │   ├── components/          # Reusable React components
-│   │   ├── ui/              # shadcn/ui basic components
-│   │   ├── common/          # Global layout helpers (buttons, cards, etc.)
-│   │   ├── layout/          # Page layouts (headers, sidebars)
-│   │   └── music/           # Audio/music specific components
+│   │   ├── layout/          # Page headers, sidebars
+│   │   ├── music/           # Audio/music list rows, cards, and player controls
+│   │   └── ui/              # Input fields and upload actions
 │   │
-│   ├── config/              # Global config files
-│   │   ├── env.ts           # Zod validated env loader
-│   │   └── logger.ts        # Pino logger config
+│   ├── config/              # Global configurations (logger, env checks)
 │   │
-│   ├── hooks/               # Custom React hooks
+│   ├── providers/           # MusicPlayerProvider context
 │   │
-│   ├── lib/                 # Third-party wrappers and helpers
-│   │   ├── prisma.ts        # Singleton Prisma client
-│   │   ├── auth.ts          # Auth.js provider shell
-│   │   ├── response.ts      # Success/error response wrappers
-│   │   └── validations/     # Zod input schemas
+│   ├── repositories/        # Database access layer (JsonSongRepository)
 │   │
-│   ├── providers/           # React context providers
+│   ├── services/            # Business logic orchestration (SongService, libraryScanner)
 │   │
-│   ├── repositories/        # Database access layer (communicates with Prisma)
+│   ├── types/               # Type definitions (Song, Scanner models)
 │   │
-│   ├── services/            # Business logic layer (computations, orchestration)
-│   │
-│   ├── store/               # Global state stores (Zustand/Redux)
-│   │
-│   ├── types/               # Type definitions
-│   │
-│   ├── utils/               # Generic utility helpers
-│   │   └── appError.ts      # AppError custom exception class
-│   │
-│   └── middleware.ts        # Next.js global request middleware
-│
-├── uploads/                 # Local directory for files (ignored)
-│   ├── songs/               # Audio files
-│   ├── covers/              # Artwork images
-│   └── temp/                # Temp upload chunks
-│
-├── .env.example             # Template env parameters
-├── .gitignore               # Git ignored folders list
-├── eslint.config.mjs        # Flat ESLint rules configuration
-├── prettier.config.js       # Prettier formatting config
-├── tsconfig.json            # Strict TypeScript configuration
-└── README.md                # System documentation
+│   └── utils/               # AppError handlers
 ```
 
 ---
 
-## Architectural Rules
+## API Endpoints
 
-We enforce a strict **Layered Architecture** for API endpoints to keep the codebase modular, testable, and maintainable.
+### Library Scanner API
 
-```text
-[API Route Handler] 
-        ↓  (processes HTTP, parses input, handles response headers)
-  [Service Layer]
-        ↓  (coordinates business rules, verification, auth checks)
-[Repository Layer]
-        ↓  (direct query builder or Prisma actions)
-  [Prisma Client]
+#### POST `/api/v1/library/scan`
+Triggers a manual walk and synchronization.
+```json
+{
+  "success": true,
+  "summary": {
+    "scanned": 582,
+    "imported": 17,
+    "updated": 4,
+    "removed": 2,
+    "skipped": 559,
+    "errors": 0,
+    "durationMs": 1543
+  }
+}
 ```
 
-### Key Guidelines:
-1. **No direct database queries inside Route Handlers**. They must request data via services.
-2. **Controllers/Route Handlers only handle HTTP**. Parsing params/body and returning status codes.
-3. **Services contain business logic**. Calculating metrics, processing inputs, triggering metadata parsing.
-4. **Repositories map queries to DB**. Keep Prisma calls isolated inside repositories so swapping ORMs or modifying schema doesn't affect services.
-5. **Dependency Injection**: Inject repository instances into services to allow easy unit testing and mocking.
+#### GET `/api/v1/library/status`
+Retrieves scanner progress flags.
+```json
+{
+  "isScanning": false,
+  "lastScan": "2026-06-30T17:34:43Z",
+  "totalSongs": 582,
+  "lastDurationMs": 1421
+}
+```
+
+### Songs & Audio API
+
+- **GET** `/api/v1/songs`: Retrieves all indexed tracks.
+- **GET** `/api/v1/songs/artwork/[id]`: Serves cached embedded ID3 covers directly.
+- **POST** `/api/v1/songs/upload`: Saves uploaded audio and schedules library scanner sync.
+- **GET** `/api/v1/stream/[id]`: Streams target audio using 206 Partial Content range requests.
+- **DELETE** `/api/v1/songs/[id]`: Deletes song index and disk file.
 
 ---
 
-## Environment Variables
-
-The server validates configurations using Zod at startup. Failures cause immediate system termination.
-
-Create a `.env` file in the root based on `.env.example`:
-
-| Variable | Description | Example / Default |
-| :--- | :--- | :--- |
-| `NODE_ENV` | Mode of the application | `development` |
-| `DATABASE_URL` | Prisma DB connection URL | `file:./dev.db` |
-| `JWT_SECRET` | Authentication encryption key | `some-long-random-string` |
-| `UPLOAD_DIR` | Directory for audio/image storage | `./uploads` |
-| `LOG_LEVEL` | Pino logging sensitivity level | `info` |
-| `NEXT_PUBLIC_APP_URL` | Base canonical url of client | `http://localhost:3000` |
-
----
-
-## Commands and Scripts
+## Commands & Scripts
 
 | Command | Action |
 | :--- | :--- |
-| `npm run dev` | Starts Next.js hot-reloaded development environment |
-| `npm run build` | Compiles code and generates standard Next.js build bundle |
-| `npm run start` | Boots the compiled production application |
-| `npm run lint` | Runs ESLint verification on `src/` directory |
-| `npm run format` | Standardizes styling using Prettier formatting rules |
-| `npm run prisma:generate` | Generates TypeScript client files for Prisma database schema |
-| `npm run prisma:migrate` | Runs Prisma schema migrations against the SQLite database |
-
----
-
-## Development Setup
-
-1. Clone repository and run `npm install`.
-2. Configure your local `.env` parameters.
-3. Generate Prisma client & create database:
-   ```bash
-   npm run prisma:migrate
-   ```
-4. Fire up the development environment:
-   ```bash
-   npm run dev
-   ```
-5. Navigate to [http://localhost:3000](http://localhost:3000) to see the landing page.
+| `npm run dev` | Starts local Next.js development environment |
+| `npm run build` | Validates types and compiles production bundles |
+| `npm run start` | Boots compiled Next.js production server |
+| `npm run lint` | Runs ESLint inspections |
