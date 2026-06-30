@@ -68,6 +68,17 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Ref handles to prevent infinite render loops in event handlers
+  const songsRef = useRef<Song[]>([]);
+  const activeSongRef = useRef<Song | null>(null);
+  const isShuffledRef = useRef(false);
+  const isLoopingRef = useRef(false);
+
+  useEffect(() => { songsRef.current = songs; }, [songs]);
+  useEffect(() => { activeSongRef.current = activeSong; }, [activeSong]);
+  useEffect(() => { isShuffledRef.current = isShuffled; }, [isShuffled]);
+  useEffect(() => { isLoopingRef.current = isLooping; }, [isLooping]);
+
   // Network Fetch Helper
   const safeFetch = async (url: string, options?: RequestInit): Promise<any> => {
     let response: Response;
@@ -127,21 +138,36 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const setActiveSong = (song: Song | null) => {
     setActiveSongState(song);
-    if (song && audioRef.current) {
+    if (song) {
+      console.log('[MusicPlayer] Selected song:', song.title, '(ID:', song.id, ')');
+      console.log('[MusicPlayer] Stream URL is:', `/api/v1/stream/${song.id}`);
       setIsPlaying(true);
       setTimeout(() => {
-        audioRef.current?.play().catch(() => setIsPlaying(false));
+        if (audioRef.current) {
+          console.log('[MusicPlayer] Calling play() for newly selected song');
+          audioRef.current.play().catch((err) => {
+            console.error('[MusicPlayer] play() failed:', err);
+            setIsPlaying(false);
+          });
+        }
       }, 50);
+    } else {
+      console.log('[MusicPlayer] Selected song set to null');
     }
   };
 
   const togglePlay = () => {
     if (!audioRef.current || !activeSong) return;
     if (isPlaying) {
+      console.log('[MusicPlayer] Calling pause()');
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
-      audioRef.current.play().catch(() => setIsPlaying(false));
+      console.log('[MusicPlayer] Calling play()');
+      audioRef.current.play().catch((err) => {
+        console.error('[MusicPlayer] play() failed:', err);
+        setIsPlaying(false);
+      });
       setIsPlaying(true);
     }
   };
@@ -159,29 +185,35 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const playNext = () => {
-    if (songs.length === 0) return;
-    if (isShuffled) {
-      const randomIndex = Math.floor(Math.random() * songs.length);
-      setActiveSong(songs[randomIndex]);
+    const currentSongs = songsRef.current;
+    const currentSong = activeSongRef.current;
+    if (currentSongs.length === 0) return;
+    
+    if (isShuffledRef.current) {
+      const randomIndex = Math.floor(Math.random() * currentSongs.length);
+      setActiveSong(currentSongs[randomIndex]);
       return;
     }
 
-    const currentIndex = activeSong ? songs.findIndex((s) => s.id === activeSong.id) : -1;
-    const nextIndex = (currentIndex + 1) % songs.length;
-    setActiveSong(songs[nextIndex]);
+    const currentIndex = currentSong ? currentSongs.findIndex((s) => s.id === currentSong.id) : -1;
+    const nextIndex = (currentIndex + 1) % currentSongs.length;
+    setActiveSong(currentSongs[nextIndex]);
   };
 
   const playPrev = () => {
-    if (songs.length === 0) return;
-    if (isShuffled) {
-      const randomIndex = Math.floor(Math.random() * songs.length);
-      setActiveSong(songs[randomIndex]);
+    const currentSongs = songsRef.current;
+    const currentSong = activeSongRef.current;
+    if (currentSongs.length === 0) return;
+    
+    if (isShuffledRef.current) {
+      const randomIndex = Math.floor(Math.random() * currentSongs.length);
+      setActiveSong(currentSongs[randomIndex]);
       return;
     }
 
-    const currentIndex = activeSong ? songs.findIndex((s) => s.id === activeSong.id) : -1;
-    const prevIndex = (currentIndex - 1 + songs.length) % songs.length;
-    setActiveSong(songs[prevIndex]);
+    const currentIndex = currentSong ? currentSongs.findIndex((s) => s.id === currentSong.id) : -1;
+    const prevIndex = (currentIndex - 1 + currentSongs.length) % currentSongs.length;
+    setActiveSong(currentSongs[prevIndex]);
   };
 
   const toggleLoop = () => setIsLooping(!isLooping);
@@ -194,6 +226,12 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
+
+  // Refs for ended and queue control to bind strictly once
+  const playNextRef = useRef<(() => void) | undefined>(undefined);
+  useEffect(() => {
+    playNextRef.current = playNext;
+  });
 
   // Upload handler via XHR for progress tracking
   const handleUpload = async (file: File): Promise<void> => {
@@ -296,22 +334,44 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  // Initialize Audio Object on mount
+  // Initialize Audio Object on mount strictly ONCE
   useEffect(() => {
     const audio = new Audio();
     audioRef.current = audio;
     audio.volume = volume;
 
-    const onPlay = () => setIsPlaying(true);
-    const onPause = () => setIsPlaying(false);
-    const onTimeUpdate = () => setCurrentTime(audio.currentTime);
-    const onLoadedMetadata = () => setDuration(audio.duration || 0);
+    const onPlay = () => {
+      console.log('[MusicPlayerEvent] onplay triggered');
+      setIsPlaying(true);
+    };
+    const onPause = () => {
+      console.log('[MusicPlayerEvent] onpause triggered');
+      setIsPlaying(false);
+    };
+    const onTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
+    };
+    const onLoadedMetadata = () => {
+      console.log('[MusicPlayerEvent] onloadedmetadata triggered. Duration:', audio.duration);
+      setDuration(audio.duration || 0);
+    };
+    const onCanPlay = () => {
+      console.log('[MusicPlayerEvent] oncanplay triggered');
+    };
+    const onError = (e: any) => {
+      console.error('[MusicPlayerEvent] onerror triggered:', e);
+    };
     const onEnded = () => {
-      if (isLooping) {
+      console.log('[MusicPlayerEvent] onended triggered');
+      if (isLoopingRef.current) {
+        console.log('[MusicPlayer] Loop active, restarting current song');
         audio.currentTime = 0;
         audio.play().catch(() => {});
       } else {
-        playNext();
+        console.log('[MusicPlayer] Playing next song');
+        if (playNextRef.current) {
+          playNextRef.current();
+        }
       }
     };
 
@@ -319,19 +379,25 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     audio.addEventListener('pause', onPause);
     audio.addEventListener('timeupdate', onTimeUpdate);
     audio.addEventListener('loadedmetadata', onLoadedMetadata);
+    audio.addEventListener('canplay', onCanPlay);
+    audio.addEventListener('error', onError);
     audio.addEventListener('ended', onEnded);
 
+    console.log('[MusicPlayer] Initializing Audio element and fetching songs list...');
     fetchSongs();
 
     return () => {
+      console.log('[MusicPlayer] Cleaning up Audio element listeners...');
       audio.pause();
       audio.removeEventListener('play', onPlay);
       audio.removeEventListener('pause', onPause);
       audio.removeEventListener('timeupdate', onTimeUpdate);
       audio.removeEventListener('loadedmetadata', onLoadedMetadata);
+      audio.removeEventListener('canplay', onCanPlay);
+      audio.removeEventListener('error', onError);
       audio.removeEventListener('ended', onEnded);
     };
-  }, [isLooping, songs]);
+  }, []);
 
   // Set source when active song changes
   useEffect(() => {
@@ -339,12 +405,18 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     
     if (activeSong) {
       const wasPlaying = isPlaying;
+      console.log('[MusicPlayer] Active song changed. Setting src to:', `/api/v1/stream/${activeSong.id}`);
       audioRef.current.src = `/api/v1/stream/${activeSong.id}`;
       audioRef.current.load();
       if (wasPlaying) {
-        audioRef.current.play().catch(() => setIsPlaying(false));
+        console.log('[MusicPlayer] wasPlaying is true, calling play()');
+        audioRef.current.play().catch((err) => {
+          console.error('[MusicPlayer] play() failed:', err);
+          setIsPlaying(false);
+        });
       }
     } else {
+      console.log('[MusicPlayer] No active song. Pausing audio.');
       audioRef.current.pause();
       audioRef.current.src = '';
       setIsPlaying(false);
