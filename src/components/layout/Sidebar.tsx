@@ -7,10 +7,8 @@ import {
   Disc, 
   Users, 
   Radio, 
-  Heart, 
-  Settings
+  Heart
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 interface SidebarProps {
   activeTab: string;
@@ -27,29 +25,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
 
   const subNav = [
     { id: 'favorites', label: 'Favorites', icon: Heart },
-    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (
-    <aside className="w-60 shrink-0 flex flex-col h-full border-r border-zinc-900 bg-zinc-950/20 p-6 z-20">
-      {/* Brand Logo */}
-      <div className="flex items-center gap-3 mb-10 pl-2">
-        <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
-          <Music size={18} className="text-white" />
+    <aside className="w-56 shrink-0 flex flex-col h-full bg-[#000000]/20 p-5 select-none">
+      {/* Brand logo like Spotify / macOS */}
+      <div className="flex items-center gap-2.5 mb-8 pl-1">
+        <div className="h-6 w-6 rounded bg-emerald-500 flex items-center justify-center shadow-sm">
+          <Music size={13} className="text-black" />
         </div>
-        <div>
-          <span className="font-bold text-sm tracking-tight text-white block">Homelab Music</span>
-          <span className="text-[10px] font-semibold text-indigo-400 uppercase tracking-widest block">v0.1.0</span>
-        </div>
+        <span className="font-bold text-sm tracking-tight text-white">Homelab Music</span>
       </div>
 
-      {/* Main Navigation */}
-      <div className="flex-grow space-y-6">
+      {/* Navigation List */}
+      <div className="flex-grow space-y-5">
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 pl-2 block mb-3">
-            Discover
+          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 pl-1 block mb-2">
+            Main Menu
           </span>
-          <nav className="space-y-1">
+          <nav className="space-y-0.5">
             {mainNav.map((item) => {
               const isActive = activeTab === item.id;
               const Icon = item.icon;
@@ -57,30 +51,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all group relative ${
+                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium tracking-wide transition-all ${
                     isActive 
-                      ? 'text-white bg-indigo-950/20 border border-indigo-500/20' 
-                      : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
+                      ? 'text-white font-semibold' 
+                      : 'text-zinc-400 hover:text-zinc-200'
                   }`}
                 >
-                  {/* Glowing backdrop indicator */}
-                  {isActive && (
-                    <motion.div
-                      layoutId="active-indicator"
-                      className="absolute inset-0 rounded-xl bg-indigo-500/5 pointer-events-none"
-                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                    />
-                  )}
-                  
-                  <span className="flex items-center gap-3 relative z-10">
-                    <Icon size={16} className={`transition-transform duration-300 group-hover:scale-110 ${
-                      isActive ? 'text-indigo-400' : 'text-zinc-400 group-hover:text-zinc-300'
-                    }`} />
+                  <span className="flex items-center gap-2.5">
+                    <Icon size={14} className={isActive ? 'text-emerald-500' : 'text-zinc-400'} />
                     {item.label}
                   </span>
-
                   {isActive && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-md shadow-indigo-500/80 relative z-10" />
+                    <span className="w-1 h-1 rounded-full bg-emerald-500" />
                   )}
                 </button>
               );
@@ -89,10 +71,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
         </div>
 
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 pl-2 block mb-3">
-            Personal
+          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 pl-1 block mb-2">
+            Library
           </span>
-          <nav className="space-y-1">
+          <nav className="space-y-0.5">
             {subNav.map((item) => {
               const isActive = activeTab === item.id;
               const Icon = item.icon;
@@ -100,29 +82,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-wide transition-all group relative ${
+                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium tracking-wide transition-all ${
                     isActive 
-                      ? 'text-white bg-indigo-950/20 border border-indigo-500/20' 
-                      : 'text-zinc-400 hover:text-zinc-200 border border-transparent'
+                      ? 'text-white font-semibold' 
+                      : 'text-zinc-400 hover:text-zinc-200'
                   }`}
                 >
-                  {isActive && (
-                    <motion.div
-                      layoutId="active-indicator"
-                      className="absolute inset-0 rounded-xl bg-indigo-500/5 pointer-events-none"
-                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                    />
-                  )}
-
-                  <span className="flex items-center gap-3 relative z-10">
-                    <Icon size={16} className={`transition-transform duration-300 group-hover:scale-110 ${
-                      isActive ? 'text-indigo-400' : 'text-zinc-400 group-hover:text-zinc-300'
-                    }`} />
+                  <span className="flex items-center gap-2.5">
+                    <Icon size={14} className={isActive ? 'text-emerald-500' : 'text-zinc-400'} />
                     {item.label}
                   </span>
-
                   {isActive && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-md shadow-indigo-500/80 relative z-10" />
+                    <span className="w-1 h-1 rounded-full bg-emerald-500" />
                   )}
                 </button>
               );
@@ -131,14 +102,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
         </div>
       </div>
 
-      {/* User Quick Info */}
-      <div className="pt-6 border-t border-zinc-900 flex items-center gap-3">
-        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-xs text-white border border-white/10 shadow-md">
+      {/* Minimalist Profile section */}
+      <div className="pt-4 flex items-center gap-2.5">
+        <div className="h-7 w-7 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-xs text-zinc-300">
           H
         </div>
-        <div className="min-w-0 flex-grow">
-          <span className="block text-[11px] font-semibold text-zinc-200 truncate">Hritik Sharma</span>
-          <span className="block text-[9px] text-zinc-500 truncate">hritik@logan.local</span>
+        <div className="min-w-0">
+          <span className="block text-[11px] font-semibold text-zinc-300 truncate">Hritik Sharma</span>
+          <span className="block text-[8px] text-zinc-500 truncate">hritik@logan.local</span>
         </div>
       </div>
     </aside>

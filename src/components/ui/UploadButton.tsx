@@ -15,7 +15,7 @@ export const UploadButton: React.FC = () => {
       try {
         await handleUpload(files[0]);
       } catch {
-        // Error logged to global state and console
+        // Error logged to state
       }
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -36,27 +36,22 @@ export const UploadButton: React.FC = () => {
       />
       <label htmlFor="dev-music-upload">
         <motion.div
-          whileHover={{ scale: uploading ? 1 : 1.03 }}
+          whileHover={{ scale: uploading ? 1 : 1.02 }}
           whileTap={{ scale: uploading ? 1 : 0.98 }}
-          className={`relative overflow-hidden inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full font-medium text-xs tracking-wider uppercase cursor-pointer select-none transition-all shadow-md duration-300 ${
+          className={`relative overflow-hidden inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-[11px] cursor-pointer select-none transition-all border ${
             uploading
-              ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700/50'
-              : 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-indigo-600/10 hover:shadow-indigo-500/20 hover:shadow-lg border border-indigo-500/20'
+              ? 'bg-zinc-900 text-zinc-500 border-transparent cursor-not-allowed'
+              : 'bg-[#18181B] hover:bg-[#27272A] border-zinc-800 text-zinc-200'
           }`}
         >
-          {/* Subtle Ambient Glow inside button */}
-          {!uploading && (
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/30 to-violet-500/30 blur-md opacity-50 hover:opacity-100 transition-opacity pointer-events-none" />
-          )}
-
           {uploading ? (
             <>
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              <span>Uploading</span>
+              <Loader2 className="h-3 w-3 animate-spin text-zinc-500" />
+              <span>Uploading...</span>
             </>
           ) : (
             <>
-              <Upload className="h-3.5 w-3.5" />
+              <Upload className="h-3 w-3 text-zinc-400" />
               <span>Upload MP3</span>
             </>
           )}

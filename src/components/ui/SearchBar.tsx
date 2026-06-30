@@ -32,20 +32,20 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   }, []);
 
   return (
-    <div className="relative w-full max-w-sm">
-      <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-zinc-400">
-        <Search size={16} />
+    <div className="relative w-64">
+      <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none text-zinc-500">
+        <Search size={13} />
       </div>
       <input
         id="search-songs-input"
         type="text"
-        placeholder="Search songs, artists, albums..."
+        placeholder="Search..."
         value={value}
         onChange={handleChange}
-        className="w-full pl-10 pr-16 py-2 rounded-full bg-zinc-900/50 border border-zinc-800/80 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500/50 focus:bg-zinc-900/80 focus:ring-1 focus:ring-indigo-500/20 backdrop-blur-md transition-all duration-300"
+        className="w-full pl-8 pr-12 py-1 rounded bg-[#18181B]/40 hover:bg-[#18181B]/80 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:bg-[#18181B] focus:ring-0 transition-all duration-200 border border-transparent focus:border-[#27272A]"
       />
-      <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-        <kbd className="hidden sm:inline-flex items-center gap-0.5 h-5 select-none rounded border border-zinc-800 bg-zinc-950/80 px-1.5 font-mono text-[10px] font-medium text-zinc-500">
+      <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none">
+        <kbd className="hidden sm:inline-flex items-center gap-0.5 select-none rounded bg-zinc-950 px-1 font-mono text-[9px] font-medium text-zinc-600 border border-zinc-800/40">
           <span>⌘</span>K
         </kbd>
       </div>

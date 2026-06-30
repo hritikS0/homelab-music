@@ -25,41 +25,36 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ song }) => {
 
   return (
     <motion.div
-      whileHover={{ y: -4 }}
+      whileHover={{ y: -2 }}
       onClick={() => setActiveSong(song)}
-      className="glass-card w-44 rounded-2xl p-4 flex flex-col gap-3 cursor-pointer relative overflow-hidden group select-none"
+      className="w-36 flex flex-col gap-2.5 cursor-pointer relative overflow-hidden group select-none"
     >
-      {/* Cover Art Wrapper */}
-      <div className="relative aspect-square w-full rounded-xl bg-gradient-to-tr from-zinc-800 to-zinc-900 flex items-center justify-center shadow-md overflow-hidden border border-white/[0.02]">
-        {/* Soft Glow */}
-        {isActive && (
-          <div className="absolute inset-0 bg-indigo-500/10 blur-sm animate-pulse" />
-        )}
-        
-        <Music size={32} className={`transition-transform duration-500 group-hover:scale-105 ${
-          isActive ? 'text-indigo-400' : 'text-zinc-500'
+      {/* Cover Artwork */}
+      <div className="relative aspect-square w-full rounded-md bg-zinc-900 flex items-center justify-center overflow-hidden border border-zinc-800/40 shadow-sm">
+        <Music size={26} className={`transition-transform duration-300 group-hover:scale-102 ${
+          isActive ? 'text-emerald-500' : 'text-zinc-600'
         }`} />
 
-        {/* Hover Play Button */}
-        <div className="absolute inset-0 bg-zinc-950/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
+        {/* Hover overlay play button */}
+        <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-150">
           <button
             onClick={handlePlayClick}
-            className="h-10 w-10 rounded-full bg-white text-zinc-950 flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-lg"
+            className="h-8 w-8 rounded-full bg-white text-zinc-950 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md"
           >
-            {isActive && isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
+            {isActive && isPlaying ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" className="ml-0.5" />}
           </button>
         </div>
       </div>
 
-      {/* Metadata */}
-      <div className="min-w-0">
-        <span className={`block text-xs font-bold truncate ${
-          isActive ? 'text-indigo-400' : 'text-zinc-200'
+      {/* Text Details */}
+      <div className="min-w-0 px-0.5">
+        <span className={`block text-[11px] font-medium truncate ${
+          isActive ? 'text-emerald-400' : 'text-zinc-200'
         }`}>
           {song.title}
         </span>
-        <span className="block text-[9px] font-semibold text-zinc-500 tracking-wider uppercase mt-1">
-          {song.mimeType?.split('/')?.[1]?.toUpperCase() || 'AUDIO'}
+        <span className="block text-[9px] text-zinc-500 truncate mt-0.5 font-normal">
+          {song.artist || 'Unknown Artist'}
         </span>
       </div>
     </motion.div>

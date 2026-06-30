@@ -66,37 +66,37 @@ export const BottomPlayer: React.FC = () => {
     <AnimatePresence>
       {activeSong && (
         <motion.div
-          initial={{ y: 100, opacity: 0 }}
+          initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 100, opacity: 0 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="fixed bottom-6 left-6 right-6 h-20 rounded-2xl border border-zinc-800/80 bg-zinc-950/70 backdrop-blur-xl shadow-2xl z-30 px-6 flex items-center justify-between"
+          exit={{ y: 50, opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed bottom-0 left-0 right-0 h-20 bg-[#121212]/95 border-t border-[#282828]/40 backdrop-blur-md z-30 px-6 flex items-center justify-between"
         >
           {/* Active Song Info (Left) */}
-          <div className="flex items-center gap-3 w-1/4 min-w-[200px]">
-            <div className="h-11 w-11 rounded-xl bg-gradient-to-tr from-zinc-800 to-zinc-900 border border-white/[0.02] flex items-center justify-center shadow shrink-0">
-              <Music size={18} className="text-indigo-400" />
+          <div className="flex items-center gap-3 w-1/4 min-w-[180px]">
+            <div className="h-10 w-10 rounded bg-[#282828] border border-zinc-800/40 flex items-center justify-center shadow-sm shrink-0">
+              <Music size={15} className="text-zinc-400" />
             </div>
             <div className="min-w-0 pr-2">
-              <span className="block text-xs font-bold text-white truncate">
+              <span className="block text-xs font-semibold text-zinc-100 hover:underline cursor-pointer truncate">
                 {activeSong.title}
               </span>
-              <span className="block text-[9px] font-semibold text-zinc-500 tracking-wider uppercase truncate mt-0.5">
-                {activeSong.mimeType?.split('/')?.[1]?.toUpperCase() || 'AUDIO'}
+              <span className="block text-[10px] text-zinc-400 hover:underline cursor-pointer truncate mt-0.5">
+                {activeSong.artist || 'Unknown Artist'}
               </span>
             </div>
-            <button className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-950/10 transition-colors shrink-0">
-              <Heart size={14} />
+            <button className="p-1 rounded text-zinc-400 hover:text-white transition-colors shrink-0">
+              <Heart size={13} />
             </button>
           </div>
 
           {/* Central Controls & Timeline (Center) */}
-          <div className="flex flex-col items-center gap-1.5 w-2/5 max-w-[500px]">
-            <div className="flex items-center gap-5">
+          <div className="flex flex-col items-center gap-1.5 w-2/5 max-w-[450px]">
+            <div className="flex items-center gap-4">
               <button
                 onClick={toggleShuffle}
                 className={`p-1 transition-colors ${
-                  isShuffled ? 'text-indigo-400' : 'text-zinc-500 hover:text-zinc-300'
+                  isShuffled ? 'text-emerald-500' : 'text-zinc-400 hover:text-zinc-200'
                 }`}
                 title="Shuffle"
               >
@@ -105,32 +105,32 @@ export const BottomPlayer: React.FC = () => {
 
               <button
                 onClick={playPrev}
-                className="p-1 text-zinc-400 hover:text-white active:scale-95 transition-all"
+                className="p-1 text-zinc-400 hover:text-white transition-colors"
                 title="Previous"
               >
-                <SkipBack size={14} fill="currentColor" />
+                <SkipBack size={13} fill="currentColor" />
               </button>
 
               <button
                 onClick={togglePlay}
-                className="h-8 w-8 rounded-full bg-white text-zinc-950 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow"
+                className="h-7 w-7 rounded-full bg-white text-zinc-950 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
                 title={isPlaying ? 'Pause' : 'Play'}
               >
-                {isPlaying ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" className="ml-0.5" />}
+                {isPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" className="ml-0.5" />}
               </button>
 
               <button
                 onClick={playNext}
-                className="p-1 text-zinc-400 hover:text-white active:scale-95 transition-all"
+                className="p-1 text-zinc-400 hover:text-white transition-colors"
                 title="Next"
               >
-                <SkipForward size={14} fill="currentColor" />
+                <SkipForward size={13} fill="currentColor" />
               </button>
 
               <button
                 onClick={toggleLoop}
                 className={`p-1 transition-colors ${
-                  isLooping ? 'text-indigo-400' : 'text-zinc-500 hover:text-zinc-300'
+                  isLooping ? 'text-emerald-500' : 'text-zinc-400 hover:text-zinc-200'
                 }`}
                 title="Repeat"
               >
@@ -139,24 +139,24 @@ export const BottomPlayer: React.FC = () => {
             </div>
 
             {/* Timeline */}
-            <div className="flex items-center gap-3 w-full text-[9px] font-mono font-semibold text-zinc-500 select-none">
-              <span className="w-8 text-right">{formatTime(currentTime)}</span>
+            <div className="flex items-center gap-2.5 w-full text-[9px] font-mono font-medium text-zinc-500 select-none">
+              <span className="w-6 text-right">{formatTime(currentTime)}</span>
               <input
                 type="range"
                 min="0"
                 max="100"
                 value={progressPct}
                 onChange={handleProgressBarChange}
-                className="flex-grow accent-indigo-500"
+                className="flex-grow accent-emerald-500"
               />
-              <span className="w-8 text-left">{formatTime(duration)}</span>
+              <span className="w-6 text-left">{formatTime(duration)}</span>
             </div>
           </div>
 
           {/* Volume & Aux Tools (Right) */}
-          <div className="flex items-center justify-end gap-3 w-1/4 min-w-[150px]">
+          <div className="flex items-center justify-end gap-2.5 w-1/4 min-w-[120px]">
             <button onClick={toggleMute} className="text-zinc-400 hover:text-white transition-colors">
-              {volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
+              {volume === 0 ? <VolumeX size={14} /> : <Volume2 size={14} />}
             </button>
             <input
               type="range"
@@ -164,7 +164,7 @@ export const BottomPlayer: React.FC = () => {
               max="100"
               value={volume * 100}
               onChange={handleVolumeChange}
-              className="w-20 accent-indigo-500"
+              className="w-16 accent-emerald-500"
             />
           </div>
         </motion.div>

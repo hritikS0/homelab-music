@@ -15,42 +15,32 @@ export const Topbar: React.FC<TopbarProps> = ({ onSearch }) => {
   const { isScanning, scanProgress, triggerScan } = useMusicPlayer();
 
   return (
-    <header className="flex items-center justify-between py-6 px-8 border-b border-zinc-900 bg-zinc-950/10 backdrop-blur-md z-15">
-      {/* Greetings */}
-      <div>
-        <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-          Good evening, Hritik 👋
-        </h2>
-        <p className="text-[11px] text-zinc-500 font-semibold tracking-wide uppercase mt-0.5">
-          Your personal music server
-        </p>
-      </div>
+    <header className="flex items-center justify-between py-4 px-8 bg-transparent">
+      {/* Search Input on the Left */}
+      <SearchBar onSearch={onSearch} />
 
-      {/* Action Area */}
-      <div className="flex items-center gap-4">
-        {/* Search */}
-        <SearchBar onSearch={onSearch} />
-
-        {/* Scan Library Trigger */}
+      {/* Actions on the Right */}
+      <div className="flex items-center gap-3">
+        {/* Scan Library */}
         <motion.button
-          whileHover={{ scale: isScanning ? 1 : 1.03 }}
+          whileHover={{ scale: isScanning ? 1 : 1.02 }}
           whileTap={{ scale: isScanning ? 1 : 0.98 }}
           onClick={() => triggerScan()}
           disabled={isScanning}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-wide border transition-all duration-300 ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 border border-transparent ${
             isScanning
-              ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 cursor-not-allowed'
-              : 'bg-zinc-900/50 hover:bg-zinc-900/80 border-zinc-800 hover:border-zinc-700 text-zinc-300'
+              ? 'bg-zinc-900 text-zinc-500 cursor-not-allowed'
+              : 'bg-zinc-900/60 hover:bg-zinc-900 text-zinc-300 border-zinc-800/40 hover:border-zinc-800'
           }`}
         >
           {isScanning ? (
             <>
-              <Loader2 size={12} className="animate-spin text-amber-400" />
+              <Loader2 size={11} className="animate-spin text-zinc-500" />
               <span>{scanProgress || 'Scanning...'}</span>
             </>
           ) : (
             <>
-              <RefreshCw size={12} className="text-zinc-400" />
+              <RefreshCw size={11} className="text-zinc-400" />
               <span>Scan Library</span>
             </>
           )}
@@ -59,11 +49,9 @@ export const Topbar: React.FC<TopbarProps> = ({ onSearch }) => {
         {/* Upload Trigger */}
         <UploadButton />
 
-        {/* Avatar */}
-        <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-600 p-[1px] shadow-md cursor-pointer hover:scale-105 transition-all duration-300">
-          <div className="h-full w-full rounded-full bg-zinc-950 flex items-center justify-center font-bold text-xs text-zinc-300">
-            H
-          </div>
+        {/* User avatar / profile button */}
+        <div className="h-6 w-6 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-[10px] text-zinc-400 border border-zinc-700/30 cursor-pointer">
+          H
         </div>
       </div>
     </header>
