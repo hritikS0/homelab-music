@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Play, Music, Pause } from 'lucide-react';
 import { Song } from '@/types/song';
 import { useMusicPlayer } from '@/providers/MusicPlayerProvider';
@@ -13,6 +14,7 @@ interface AlbumCardProps {
 export const AlbumCard: React.FC<AlbumCardProps> = ({ song }) => {
   const { activeSong, isPlaying, setActiveSong, togglePlay } = useMusicPlayer();
   const isActive = activeSong?.id === song.id;
+  const [imgError, setImgError] = useState(false);
 
   const handlePlayClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -27,19 +29,28 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ song }) => {
     <motion.div
       whileHover={{ y: -2 }}
       onClick={() => setActiveSong(song)}
-      className="w-36 flex flex-col gap-2.5 cursor-pointer relative overflow-hidden group select-none"
+      className="w-36 flex flex-col gap-2.5 cursor-pointer relative overflow-hidden group select-none animate-fade-in"
     >
       {/* Cover Artwork */}
       <div className="relative aspect-square w-full rounded-md bg-zinc-900 flex items-center justify-center overflow-hidden border border-zinc-800/40 shadow-sm">
-        <Music size={26} className={`transition-transform duration-300 group-hover:scale-102 ${
-          isActive ? 'text-emerald-500' : 'text-zinc-600'
-        }`} />
+        {!imgError ? (
+          <img
+            src={`/api/v1/songs/artwork/${song.id}`}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-102"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <Music size={26} className={`transition-transform duration-300 group-hover:scale-102 ${
+            isActive ? 'text-emerald-500' : 'text-zinc-600'
+          }`} />
+        )}
 
         {/* Hover overlay play button */}
         <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-150">
           <button
             onClick={handlePlayClick}
-            className="h-8 w-8 rounded-full bg-white text-zinc-950 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md"
+            className="h-8 w-8 rounded-full bg-white text-zinc-950 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md relative z-10"
           >
             {isActive && isPlaying ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" className="ml-0.5" />}
           </button>

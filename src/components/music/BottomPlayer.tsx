@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/set-state-in-effect, @next/next/no-img-element */
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Play, 
   Pause, 
@@ -33,6 +34,13 @@ export const BottomPlayer: React.FC = () => {
     toggleLoop,
     toggleShuffle
   } = useMusicPlayer();
+
+  const [imgError, setImgError] = useState(false);
+
+  // Reset image error state when active song changes
+  useEffect(() => {
+    setImgError(false);
+  }, [activeSong?.id]);
 
   const formatTime = (secs: number) => {
     if (isNaN(secs) || secs === 0) return '0:00';
@@ -74,8 +82,17 @@ export const BottomPlayer: React.FC = () => {
         >
           {/* Active Song Info (Left) */}
           <div className="flex items-center gap-3 w-1/4 min-w-[180px]">
-            <div className="h-10 w-10 rounded bg-[#282828] border border-zinc-800/40 flex items-center justify-center shadow-sm shrink-0">
-              <Music size={15} className="text-zinc-400" />
+            <div className="h-10 w-10 rounded bg-[#282828] border border-zinc-800/40 flex items-center justify-center shadow-sm shrink-0 overflow-hidden relative">
+              {!imgError ? (
+                <img
+                  src={`/api/v1/songs/artwork/${activeSong.id}`}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover animate-fade-in"
+                  onError={() => setImgError(true)}
+                />
+              ) : (
+                <Music size={15} className="text-zinc-400" />
+              )}
             </div>
             <div className="min-w-0 pr-2">
               <span className="block text-xs font-semibold text-zinc-100 hover:underline cursor-pointer truncate">

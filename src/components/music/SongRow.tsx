@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Play, Pause, Trash2, Music } from 'lucide-react';
 import { Song } from '@/types/song';
 import { useMusicPlayer } from '@/providers/MusicPlayerProvider';
@@ -14,6 +15,7 @@ interface SongRowProps {
 export const SongRow: React.FC<SongRowProps> = ({ song, index }) => {
   const { activeSong, isPlaying, setActiveSong, togglePlay, handleDelete } = useMusicPlayer();
   const isActive = activeSong?.id === song.id;
+  const [imgError, setImgError] = useState(false);
 
   const handlePlayClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -59,7 +61,16 @@ export const SongRow: React.FC<SongRowProps> = ({ song, index }) => {
 
         {/* Artwork */}
         <div className="relative h-9 w-9 rounded overflow-hidden shrink-0 bg-zinc-900 border border-zinc-800/60 flex items-center justify-center shadow-sm">
-          <Music size={13} className={isActive ? 'text-emerald-500' : 'text-zinc-500'} />
+          {!imgError ? (
+            <img
+              src={`/api/v1/songs/artwork/${song.id}`}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <Music size={13} className={isActive ? 'text-emerald-500' : 'text-zinc-500'} />
+          )}
         </div>
 
         {/* Title & Artist */}
