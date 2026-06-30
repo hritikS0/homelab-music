@@ -11,7 +11,7 @@ import { AlbumCard } from '@/components/music/AlbumCard';
 import { EmptyLibrary } from '@/components/music/EmptyLibrary';
 import { FullscreenPlayer } from '@/components/music/FullscreenPlayer';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music } from 'lucide-react';
+import { Music, ArrowLeft } from 'lucide-react';
 
 export default function Home() {
   const {
@@ -24,6 +24,17 @@ export default function Home() {
 
   const [activeTab, setActiveTab] = useState('library');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Dedicated detail page states
+  const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
+  const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null);
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setSearchTerm('');
+    setSelectedArtist(null);
+    setSelectedAlbum(null);
+  };
 
   // Search filtering
   const filteredSongs = songs.filter((song) =>
@@ -84,7 +95,7 @@ export default function Home() {
 
         return (
           <div className="space-y-10 pb-32">
-            {/* Recently Uploaded Grid */}
+            {/* Recently Played Grid */}
             {songs.length > 0 && (
               <div>
                 <h2 className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-4 px-1">
@@ -119,6 +130,49 @@ export default function Home() {
         );
 
       case 'albums':
+        if (selectedAlbum) {
+          const albumDetails = uniqueAlbums.find(a => a.albumName === selectedAlbum);
+          const albumSongs = albumDetails?.songs || [];
+          const firstSong = albumSongs[0];
+          
+          return (
+            <div className="space-y-8 pb-32">
+              <button 
+                onClick={() => setSelectedAlbum(null)}
+                className="flex items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <ArrowLeft size={13} />
+                <span>Back to Albums</span>
+              </button>
+
+              <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 pb-2">
+                <div className="relative aspect-square w-40 rounded-lg bg-zinc-900 border border-zinc-800/40 flex items-center justify-center overflow-hidden shadow-md shrink-0">
+                  {firstSong ? (
+                    <img
+                      src={`/api/v1/songs/artwork/${firstSong.id}`}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-cover"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                  ) : null}
+                  <Music size={28} className="text-zinc-600" />
+                </div>
+                <div className="text-center sm:text-left">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Album</span>
+                  <h1 className="text-2xl font-bold text-white tracking-tight mt-1">{selectedAlbum}</h1>
+                  <p className="text-xs text-zinc-400 font-medium mt-1">
+                    {albumDetails?.artistName} &bull; {albumSongs.length} {albumSongs.length === 1 ? 'track' : 'tracks'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <SongList songs={albumSongs} />
+              </div>
+            </div>
+          );
+        }
+
         if (uniqueAlbums.length === 0) {
           return (
             <div className="py-20 text-center text-xs text-zinc-500">
@@ -126,6 +180,7 @@ export default function Home() {
             </div>
           );
         }
+
         return (
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-6 pb-32">
             {uniqueAlbums.map((album) => {
@@ -133,10 +188,7 @@ export default function Home() {
               return (
                 <div
                   key={`${album.albumName}-${album.artistName}`}
-                  onClick={() => {
-                    setSearchTerm(album.albumName === 'Unknown Album' ? '' : album.albumName);
-                    setActiveTab('library');
-                  }}
+                  onClick={() => setSelectedAlbum(album.albumName)}
                   className="flex flex-col gap-2.5 cursor-pointer group select-none"
                 >
                   <div className="relative aspect-square w-full rounded-md bg-zinc-900 flex items-center justify-center overflow-hidden border border-zinc-800/40 shadow-sm group-hover:border-zinc-700 transition-all">
@@ -167,6 +219,48 @@ export default function Home() {
         );
 
       case 'artists':
+        if (selectedArtist) {
+          const artistSongs = artistsMap.get(selectedArtist) || [];
+          const firstSong = artistSongs[0];
+          
+          return (
+            <div className="space-y-8 pb-32">
+              <button 
+                onClick={() => setSelectedArtist(null)}
+                className="flex items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <ArrowLeft size={13} />
+                <span>Back to Artists</span>
+              </button>
+
+              <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 pb-2">
+                <div className="relative aspect-square w-32 rounded-full bg-zinc-900 border border-zinc-800/40 flex items-center justify-center overflow-hidden shadow-md shrink-0">
+                  {firstSong ? (
+                    <img
+                      src={`/api/v1/songs/artwork/${firstSong.id}`}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-cover"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                  ) : null}
+                  <Music size={24} className="text-zinc-600" />
+                </div>
+                <div className="text-center sm:text-left">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Artist</span>
+                  <h1 className="text-3xl font-bold text-white tracking-tight mt-1">{selectedArtist}</h1>
+                  <p className="text-xs text-zinc-400 font-medium mt-1">
+                    {artistSongs.length} {artistSongs.length === 1 ? 'track' : 'tracks'} in your library
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <SongList songs={artistSongs} />
+              </div>
+            </div>
+          );
+        }
+
         if (uniqueArtists.length === 0) {
           return (
             <div className="py-20 text-center text-xs text-zinc-500">
@@ -174,6 +268,7 @@ export default function Home() {
             </div>
           );
         }
+
         return (
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-6 pb-32">
             {uniqueArtists.map((artist) => {
@@ -182,10 +277,7 @@ export default function Home() {
               return (
                 <div
                   key={artist}
-                  onClick={() => {
-                    setSearchTerm(artist === 'Unknown Artist' ? '' : artist);
-                    setActiveTab('library');
-                  }}
+                  onClick={() => setSelectedArtist(artist)}
                   className="flex flex-col items-center text-center gap-3 cursor-pointer group select-none"
                 >
                   <div className="relative aspect-square w-24 rounded-full bg-zinc-900 flex items-center justify-center border border-zinc-800/40 overflow-hidden group-hover:border-zinc-700 transition-all shadow-sm">
@@ -283,7 +375,7 @@ export default function Home() {
   return (
     <div className="flex h-screen w-screen overflow-hidden text-zinc-300 bg-[#09090B] font-sans">
       {/* Sidebar (Left) */}
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar activeTab={activeTab} setActiveTab={handleTabChange} />
 
       {/* Main Content Area (Right) */}
       <div className="flex-grow flex flex-col h-full overflow-hidden bg-transparent">
@@ -304,7 +396,7 @@ export default function Home() {
         <main className="flex-grow overflow-y-auto px-8 py-6">
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeTab}
+              key={activeTab + (selectedArtist ? `-${selectedArtist}` : '') + (selectedAlbum ? `-${selectedAlbum}` : '')}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
