@@ -38,3 +38,4 @@ dev.db-journal
 
 # uploads
 /uploads/
+/storage/

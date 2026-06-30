@@ -23,7 +23,8 @@ export default function Home() {
     currentResponse,
     currentError,
     error,
-    setError
+    setError,
+    scanSummary
   } = useMusicPlayer();
 
   const [activeTab, setActiveTab] = useState('library');
@@ -205,6 +206,41 @@ export default function Home() {
                 </div>
               </div>
             </div>
+
+            {/* Library Scan Summary */}
+            {scanSummary && (
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-4 pl-1">
+                  Last Scan Summary
+                </h3>
+                <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/10 backdrop-blur-md p-5 grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs font-semibold text-zinc-300">
+                  <div className="flex flex-col bg-zinc-950/40 p-3 rounded-xl border border-zinc-900/40">
+                    <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold">Scanned</span>
+                    <span className="text-white text-lg font-bold mt-1">{scanSummary.scanned}</span>
+                  </div>
+                  <div className="flex flex-col bg-zinc-950/40 p-3 rounded-xl border border-zinc-900/40">
+                    <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold">Imported</span>
+                    <span className="text-indigo-400 text-lg font-bold mt-1">+{scanSummary.imported}</span>
+                  </div>
+                  <div className="flex flex-col bg-zinc-950/40 p-3 rounded-xl border border-zinc-900/40">
+                    <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold">Updated</span>
+                    <span className="text-blue-400 text-lg font-bold mt-1">~{scanSummary.updated}</span>
+                  </div>
+                  <div className="flex flex-col bg-zinc-950/40 p-3 rounded-xl border border-zinc-900/40">
+                    <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold">Removed</span>
+                    <span className="text-red-400 text-lg font-bold mt-1">-{scanSummary.removed}</span>
+                  </div>
+                  <div className="flex flex-col bg-zinc-950/40 p-3 rounded-xl border border-zinc-900/40">
+                    <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold">Skipped</span>
+                    <span className="text-zinc-400 text-lg font-bold mt-1">{scanSummary.skipped}</span>
+                  </div>
+                  <div className="flex flex-col bg-zinc-950/40 p-3 rounded-xl border border-zinc-900/40">
+                    <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold">Errors</span>
+                    <span className={`text-lg font-bold mt-1 ${scanSummary.errors > 0 ? 'text-rose-500' : 'text-zinc-400'}`}>{scanSummary.errors}</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Development Debug Panel */}
             {process.env.NODE_ENV === 'development' && (

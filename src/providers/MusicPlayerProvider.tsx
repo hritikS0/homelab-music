@@ -20,6 +20,13 @@ interface MusicPlayerContextType {
   currentError: string | null;
   currentProgress: string | null;
   error: string | null;
+
+  // Scanner integrations
+  isScanning: boolean;
+  scanSummary: any | null;
+  scanProgress: string | null;
+  triggerScan: () => Promise<void>;
+  checkScanStatus: () => Promise<void>;
   
   setActiveSong: (song: Song | null) => void;
   setIsPlaying: (playing: boolean) => void;
@@ -65,6 +72,11 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [currentResponse, setCurrentResponse] = useState<string | null>(null);
   const [currentError, setCurrentError] = useState<string | null>(null);
   const [currentProgress, setCurrentProgress] = useState<string | null>(null);
+
+  // Scanner states
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanSummary, setScanSummary] = useState<any | null>(null);
+  const [scanProgress, setScanProgress] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -133,6 +145,58 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setSongs(data);
     } catch (err: any) {
       setError(err.message || 'Error loading library');
+    }
+  };
+
+  const checkScanStatus = async () => {
+    try {
+      const status = await safeFetch('/api/v1/library/status');
+      setIsScanning(status.isScanning);
+    } catch {
+      // Ignore background check failure
+    }
+  };
+
+  const triggerScan = async () => {
+    if (isScanning) return;
+    setIsScanning(true);
+    setScanSummary(null);
+    setScanProgress('Scanning...');
+
+    // Async simulated progression for visual elegance
+    const progressStages = [
+      { text: 'Scanning folder...', delay: 250 },
+      { text: 'Reading audio files...', delay: 500 },
+      { text: 'Importing metadata...', delay: 750 },
+      { text: 'Updating library...', delay: 1000 },
+    ];
+
+    const stepPromises = progressStages.map((stage) => {
+      return new Promise<void>((resolve) => {
+        setTimeout(() => {
+          setScanProgress(stage.text);
+          resolve();
+        }, stage.delay);
+      });
+    });
+
+    try {
+      const apiPromise = safeFetch('/api/v1/library/scan', { method: 'POST' });
+      const [apiResponse] = await Promise.all([apiPromise, ...stepPromises]);
+      
+      setScanProgress('Complete');
+      setScanSummary(apiResponse.summary);
+      await fetchSongs();
+      
+      // Clear progress indicator after delay
+      setTimeout(() => {
+        setScanProgress(null);
+      }, 4000);
+    } catch (err: any) {
+      setError(err.message || 'Library scan failed');
+      setScanProgress('Error');
+    } finally {
+      setIsScanning(false);
     }
   };
 
@@ -385,6 +449,7 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     console.log('[MusicPlayer] Initializing Audio element and fetching songs list...');
     fetchSongs();
+    checkScanStatus();
 
     return () => {
       console.log('[MusicPlayer] Cleaning up Audio element listeners...');
@@ -448,6 +513,13 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
         currentError,
         currentProgress,
         error,
+
+        // Scanner integrations
+        isScanning,
+        scanSummary,
+        scanProgress,
+        triggerScan,
+        checkScanStatus,
         
         setActiveSong,
         setIsPlaying,

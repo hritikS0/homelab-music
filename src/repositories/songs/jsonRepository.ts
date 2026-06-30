@@ -64,12 +64,34 @@ export class JsonSongRepository implements SongRepository {
     return songs.find((song) => song.id === id) || null;
   }
 
+  public async findByHash(hash: string): Promise<Song | null> {
+    const songs = await this.readData();
+    return songs.find((song) => song.hash === hash) || null;
+  }
+
+  public async findByFilePath(filePath: string): Promise<Song | null> {
+    const songs = await this.readData();
+    return songs.find((song) => song.filePath === filePath) || null;
+  }
+
   public async create(data: CreateSongInput): Promise<Song> {
     return this.enqueueWrite(async () => {
       const songs = await this.readData();
       const newSong: Song = {
         id: crypto.randomUUID(),
-        ...data,
+        hash: data.hash,
+        title: data.title,
+        artist: data.artist,
+        album: data.album,
+        genre: data.genre ?? null,
+        duration: data.duration ?? null,
+        year: data.year ?? null,
+        track: data.track ?? null,
+        disc: data.disc ?? null,
+        mimeType: data.mimeType,
+        size: data.size,
+        filePath: data.filePath,
+        fileName: data.fileName,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
