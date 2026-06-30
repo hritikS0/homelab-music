@@ -1,11 +1,11 @@
-import { prisma } from '@/lib/prisma';
+import { songRepository } from '@/repositories/songs/index';
 
 export class HealthService {
   public async checkHealth() {
     let databaseHealthy = false;
     try {
-      // Test Prisma client connection
-      await prisma.$queryRaw`SELECT 1`;
+      // Test database connection by reading songs list
+      await songRepository.findAll();
       databaseHealthy = true;
     } catch {
       databaseHealthy = false;

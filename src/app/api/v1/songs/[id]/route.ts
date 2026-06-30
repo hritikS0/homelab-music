@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SongService } from '@/services/songs/index';
+import { songRepository } from '@/repositories/songs/index';
 import { handleApiError } from '@/lib/response';
 import { AppError } from '@/utils/appError';
 
@@ -10,7 +11,7 @@ type RouteParams = {
 export async function GET(_req: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const songService = new SongService();
+    const songService = new SongService(songRepository);
     const song = await songService.getSongById(id);
 
     if (!song) {
@@ -26,7 +27,7 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
 export async function DELETE(_req: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const songService = new SongService();
+    const songService = new SongService(songRepository);
     await songService.deleteSong(id);
 
     return NextResponse.json({ success: true, message: 'Song deleted successfully' });

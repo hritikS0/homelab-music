@@ -22,12 +22,13 @@ export default function Home() {
       if (!res.ok) throw new Error('Failed to fetch songs');
       const data = await res.json();
       setSongs(data);
-    } catch (err: any) {
-      setError(err.message || 'Error loading library');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error loading library');
     }
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSongs();
   }, []);
 
@@ -57,8 +58,8 @@ export default function Home() {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to upload song');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to upload song');
     } finally {
       setUploading(false);
     }
@@ -75,8 +76,8 @@ export default function Home() {
         setActiveSong(null);
       }
       await fetchSongs();
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete song');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to delete song');
     }
   };
 

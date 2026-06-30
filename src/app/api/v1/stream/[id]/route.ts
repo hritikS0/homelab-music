@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { Readable } from 'node:stream';
 import { SongService } from '@/services/songs/index';
+import { songRepository } from '@/repositories/songs/index';
 import { handleApiError } from '@/lib/response';
 import { AppError } from '@/utils/appError';
 
@@ -13,7 +14,7 @@ type RouteParams = {
 export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const songService = new SongService();
+    const songService = new SongService(songRepository);
     const song = await songService.getSongById(id);
 
     if (!song) {
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     try {
       const stats = await stat(filePath);
       fileSize = stats.size;
-    } catch (error) {
+    } catch {
       throw AppError.notFound('Physical song file not found on disk');
     }
 
@@ -54,7 +55,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       const fileStream = fs.createReadStream(filePath, { start, end });
       const webStream = Readable.toWeb(fileStream);
 
-      return new NextResponse(webStream as any, {
+      return new NextResponse(webStream as unknown as ReadableStream, {
         status: 206,
         headers: {
           'Content-Range': `bytes ${start}-${end}/${fileSize}`,
@@ -68,7 +69,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       const fileStream = fs.createReadStream(filePath);
       const webStream = Readable.toWeb(fileStream);
 
-      return new NextResponse(webStream as any, {
+      return new NextResponse(webStream as unknown as ReadableStream, {
         status: 200,
         headers: {
           'Accept-Ranges': 'bytes',

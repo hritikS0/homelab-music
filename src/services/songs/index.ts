@@ -2,15 +2,15 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { parseFile } from 'music-metadata';
-import { Song } from '@prisma/client';
-import { SongRepository } from '@/repositories/songs/index';
+import { Song } from '@/types/song';
+import { SongRepository } from '@/repositories/songs/interface';
 import { env } from '@/config/env';
 import { AppError } from '@/utils/appError';
 
 export class SongService {
   private songRepository: SongRepository;
 
-  constructor(songRepository: SongRepository = new SongRepository()) {
+  constructor(songRepository: SongRepository) {
     this.songRepository = songRepository;
   }
 
@@ -67,7 +67,7 @@ export class SongService {
       if (metadata.format && typeof metadata.format.duration === 'number') {
         duration = metadata.format.duration;
       }
-    } catch (error) {
+    } catch {
       // Fallback to original file name if parsing fails
     }
 
@@ -85,7 +85,7 @@ export class SongService {
     } catch (error) {
       try {
         await fs.unlink(filePath);
-      } catch (cleanupError) {
+      } catch {
         // Ignore
       }
       throw AppError.internal('Failed to save song record to database', [error]);
@@ -102,7 +102,7 @@ export class SongService {
 
     try {
       await fs.unlink(song.filePath);
-    } catch (error) {
+    } catch {
       // Ignore file delete failure if file is already missing
     }
   }

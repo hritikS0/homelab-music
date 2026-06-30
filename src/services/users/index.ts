@@ -1,4 +1,4 @@
-import { User } from '@prisma/client';
+import { User } from '@/types/user';
 import { UserRepository } from '@/repositories/users/index';
 
 export class UserService {
@@ -16,7 +16,7 @@ export class UserService {
     return this.userRepository.findByEmail(email);
   }
 
-  public async createUser(email: string, passwordHash: string): Promise<User> {
+  public async createUser(email: string, passwordHash: string): Promise<User | null> {
     return this.userRepository.create({ email, passwordHash });
   }
 }
