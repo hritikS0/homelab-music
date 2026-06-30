@@ -13,6 +13,7 @@
   "dependencies": {
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.42.1",
     "lucide-react": "^1.22.0",
     "music-metadata": "^11.13.0",
     "next": "16.2.9",
