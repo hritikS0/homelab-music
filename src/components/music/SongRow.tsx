@@ -80,7 +80,7 @@ export const SongRow: React.FC<SongRowProps> = ({ song, index }) => {
             {song.title}
           </p>
           <p className="text-[10px] text-zinc-500 mt-0.5 truncate flex items-center gap-1.5 font-medium">
-            <span>{song.mimeType.split('/')[1]?.toUpperCase() || 'AUDIO'}</span>
+            <span>{song.mimeType?.split('/')?.[1]?.toUpperCase() || 'AUDIO'}</span>
             <span className="w-1 h-1 rounded-full bg-zinc-800" />
             <span>{formatSize(song.size)}</span>
           </p>

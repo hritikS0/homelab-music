@@ -82,7 +82,7 @@ export const BottomPlayer: React.FC = () => {
                 {activeSong.title}
               </span>
               <span className="block text-[9px] font-semibold text-zinc-500 tracking-wider uppercase truncate mt-0.5">
-                {activeSong.mimeType.split('/')[1]?.toUpperCase() || 'AUDIO'}
+                {activeSong.mimeType?.split('/')?.[1]?.toUpperCase() || 'AUDIO'}
               </span>
             </div>
             <button className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-950/10 transition-colors shrink-0">

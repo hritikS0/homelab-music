@@ -94,7 +94,7 @@ export const NowPlaying: React.FC = () => {
             {activeSong.title}
           </h3>
           <p className="text-[10px] font-semibold text-zinc-500 tracking-wider uppercase truncate mt-0.5">
-            {activeSong.mimeType.split('/')[1]?.toUpperCase() || 'AUDIO'}
+            {activeSong.mimeType?.split('/')?.[1]?.toUpperCase() || 'AUDIO'}
           </p>
         </div>
         <div className="flex gap-1.5 shrink-0">

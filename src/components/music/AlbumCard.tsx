@@ -59,7 +59,7 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ song }) => {
           {song.title}
         </span>
         <span className="block text-[9px] font-semibold text-zinc-500 tracking-wider uppercase mt-1">
-          {song.mimeType.split('/')[1]?.toUpperCase() || 'AUDIO'}
+          {song.mimeType?.split('/')?.[1]?.toUpperCase() || 'AUDIO'}
         </span>
       </div>
     </motion.div>
