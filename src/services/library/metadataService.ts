@@ -1,6 +1,7 @@
 import { parseFile } from 'music-metadata';
 import path from 'node:path';
 import { SyncLyric } from '@/types/song';
+import { logger } from '@/config/logger';
 
 export interface ExtractedMetadata {
   title: string;
@@ -39,7 +40,25 @@ export class MetadataService {
 
     try {
       const metadata = await parseFile(filePath);
-      const lyricsTag = metadata.common.lyrics?.[0];
+      const fileExt = path.extname(filePath).toLowerCase();
+
+      // Log full lyrics data for debugging
+      const rawLyrics = metadata.common.lyrics;
+      if (rawLyrics && rawLyrics.length > 0) {
+        logger.info({ file: filename, ext: fileExt, lyricsCount: rawLyrics.length, firstTag: { text: rawLyrics[0].text?.slice(0, 100), syncCount: rawLyrics[0].syncText?.length } }, 'Lyrics found in metadata');
+      } else {
+        logger.info({ file: filename, ext: fileExt, nativeKeys: Object.keys(metadata.native || {}) }, 'No lyrics in metadata.common');
+        // Check native tags for MP4 ©lyr
+        if (metadata.native?.['iTunes']) {
+          const lyrTag = metadata.native['iTunes'].find((t: any) => t.id === '©lyr');
+          if (lyrTag) {
+            const val = typeof lyrTag.value === 'string' ? lyrTag.value.slice(0, 200) : JSON.stringify(lyrTag.value).slice(0, 200);
+            logger.info({ file: filename, value: val }, 'Found ©lyr in native iTunes tags');
+          }
+        }
+      }
+
+      const lyricsTag = rawLyrics?.[0];
       let syncLyrics: SyncLyric[] | null = null;
       let lyrics: string | null = null;
 

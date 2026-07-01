@@ -38,7 +38,7 @@ export const SongRow: React.FC<SongRowProps> = ({ song, index }) => {
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
-      transition={{ duration: 0.15, delay: index * 0.01 }}
+      transition={{ duration: 0.12, delay: Math.min(index * 0.006, 0.15) }}
       onClick={() => setActiveSong(song)}
       className={`group flex items-center justify-between px-4 py-2.5 rounded-md cursor-pointer select-none transition-all duration-150 ${
         isActive

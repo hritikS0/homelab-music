@@ -450,8 +450,12 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       console.log('[MusicPlayerEvent] oncanplay triggered');
     };
     const onError = (e: any) => {
-      console.error('[MusicPlayerEvent] onerror triggered:', e?.message || e);
-      setIsPlaying(false);
+      const mediaError = audio.error;
+      console.error('[MusicPlayerEvent] onerror triggered:', mediaError?.code || e?.message || e);
+      // MEDIA_ERR_ABORTED (1) happens when changing src - ignore it
+      if (mediaError?.code !== 1) {
+        setIsPlaying(false);
+      }
     };
     const onEnded = () => {
       console.log('[MusicPlayerEvent] onended triggered');
@@ -500,7 +504,6 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const wasPlaying = isPlaying;
       console.log('[MusicPlayer] Active song changed. Setting src to:', `/api/v1/stream/${activeSong.id}`);
       audioRef.current.src = `/api/v1/stream/${activeSong.id}`;
-      audioRef.current.load();
       if (wasPlaying) {
         console.log('[MusicPlayer] wasPlaying is true, calling play()');
         audioRef.current.play().catch((err) => {
