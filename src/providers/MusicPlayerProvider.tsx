@@ -308,8 +308,15 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   // Refs for ended and queue control to bind strictly once
   const playNextRef = useRef<(() => void) | undefined>(undefined);
+  const playPrevRef = useRef<(() => void) | undefined>(undefined);
+  const setIsPlayingRef = useRef<((playing: boolean) => void) | undefined>(undefined);
+  const seekRef = useRef<((time: number) => void) | undefined>(undefined);
+
   useEffect(() => {
     playNextRef.current = playNext;
+    playPrevRef.current = playPrev;
+    setIsPlayingRef.current = setIsPlaying;
+    seekRef.current = seek;
   });
 
   // Upload handler via XHR for progress tracking
@@ -488,6 +495,31 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     fetchSongs();
     checkScanStatus();
 
+    // Register Media Session Action Handlers
+    if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
+      try {
+        navigator.mediaSession.setActionHandler('play', () => {
+          if (setIsPlayingRef.current) setIsPlayingRef.current(true);
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+          if (setIsPlayingRef.current) setIsPlayingRef.current(false);
+        });
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+          if (playPrevRef.current) playPrevRef.current();
+        });
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
+          if (playNextRef.current) playNextRef.current();
+        });
+        navigator.mediaSession.setActionHandler('seekto', (details) => {
+          if (details.seekTime !== undefined && seekRef.current) {
+            seekRef.current(details.seekTime);
+          }
+        });
+      } catch (err) {
+        console.warn('Failed to register Media Session Action Handlers:', err);
+      }
+    }
+
     return () => {
       console.log('[MusicPlayer] Cleaning up Audio element listeners...');
       audio.pause();
@@ -498,6 +530,16 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       audio.removeEventListener('canplay', onCanPlay);
       audio.removeEventListener('error', onError);
       audio.removeEventListener('ended', onEnded);
+
+      if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
+        try {
+          navigator.mediaSession.setActionHandler('play', null);
+          navigator.mediaSession.setActionHandler('pause', null);
+          navigator.mediaSession.setActionHandler('previoustrack', null);
+          navigator.mediaSession.setActionHandler('nexttrack', null);
+          navigator.mediaSession.setActionHandler('seekto', null);
+        } catch {}
+      }
     };
   }, []);
 
@@ -509,11 +551,57 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       console.log('[MusicPlayer] Active song changed. Setting src to:', `/api/v1/stream/${activeSong.id}`);
       audioRef.current.src = `/api/v1/stream/${activeSong.id}`;
       audioRef.current.load();
+
+      // Update Media Session Metadata for Lockscreen
+      if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: activeSong.title,
+          artist: activeSong.artist || 'Unknown Artist',
+          album: activeSong.album || 'Unknown Album',
+          artwork: [
+            {
+              src: `/api/v1/songs/artwork/${activeSong.id}`,
+              sizes: '96x96',
+              type: 'image/png',
+            },
+            {
+              src: `/api/v1/songs/artwork/${activeSong.id}`,
+              sizes: '128x128',
+              type: 'image/png',
+            },
+            {
+              src: `/api/v1/songs/artwork/${activeSong.id}`,
+              sizes: '192x192',
+              type: 'image/png',
+            },
+            {
+              src: `/api/v1/songs/artwork/${activeSong.id}`,
+              sizes: '256x256',
+              type: 'image/png',
+            },
+            {
+              src: `/api/v1/songs/artwork/${activeSong.id}`,
+              sizes: '384x384',
+              type: 'image/png',
+            },
+            {
+              src: `/api/v1/songs/artwork/${activeSong.id}`,
+              sizes: '512x512',
+              type: 'image/png',
+            },
+          ],
+        });
+      }
     } else {
       console.log('[MusicPlayer] No active song. Pausing audio.');
       audioRef.current.pause();
       audioRef.current.src = '';
       setIsPlaying(false);
+
+      // Clear Media Session Metadata
+      if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
+        navigator.mediaSession.metadata = null;
+      }
     }
   }, [activeSong]);
 
@@ -531,6 +619,13 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       audio.pause();
     }
   }, [isPlaying, activeSong]);
+
+  // Sync Media Session Playback State
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+    }
+  }, [isPlaying]);
 
   // Sync volume state
   useEffect(() => {
