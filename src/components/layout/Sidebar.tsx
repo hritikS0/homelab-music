@@ -7,15 +7,18 @@ import {
   Disc, 
   Users, 
   Radio, 
-  Heart
+  Heart,
+  X
 } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  isMobileOpen: boolean;
+  onMobileClose: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isMobileOpen, onMobileClose }) => {
   const mainNav = [
     { id: 'library', label: 'Library', icon: Library },
     { id: 'albums', label: 'Albums', icon: Disc },
@@ -27,9 +30,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
     { id: 'favorites', label: 'Favorites', icon: Heart },
   ];
 
-  return (
-    <aside className="w-56 shrink-0 flex flex-col h-full bg-[#000000]/20 p-5 select-none">
-      {/* Brand logo like Spotify / macOS */}
+  const handleNav = (id: string) => {
+    setActiveTab(id);
+    onMobileClose();
+  };
+
+  const content = (
+    <>
       <div className="flex items-center gap-2.5 mb-8 pl-1">
         <div className="h-6 w-6 rounded bg-emerald-500 flex items-center justify-center shadow-sm">
           <Music size={13} className="text-black" />
@@ -37,7 +44,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
         <span className="font-bold text-sm tracking-tight text-white">Homelab Music</span>
       </div>
 
-      {/* Navigation List */}
       <div className="flex-grow space-y-5">
         <div>
           <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 pl-1 block mb-2">
@@ -50,7 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => handleNav(item.id)}
                   className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium tracking-wide transition-all ${
                     isActive 
                       ? 'text-white font-semibold' 
@@ -81,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => handleNav(item.id)}
                   className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium tracking-wide transition-all ${
                     isActive 
                       ? 'text-white font-semibold' 
@@ -102,7 +108,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
         </div>
       </div>
 
-      {/* Minimalist Profile section */}
       <div className="pt-4 flex items-center gap-2.5">
         <div className="h-7 w-7 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-xs text-zinc-300">
           H
@@ -112,7 +117,37 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
           <span className="block text-[8px] text-zinc-500 truncate">hritik@logan.local</span>
         </div>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile overlay */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+          onClick={onMobileClose}
+        />
+      )}
+
+      {/* Mobile drawer */}
+      <aside className={`fixed top-0 left-0 z-50 h-full w-56 bg-[#09090B] p-5 select-none transform transition-transform duration-200 lg:hidden ${
+        isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <button
+          onClick={onMobileClose}
+          className="absolute top-5 right-4 p-1 rounded text-zinc-400 hover:text-white"
+        >
+          <X size={16} />
+        </button>
+        {content}
+      </aside>
+
+      {/* Desktop sidebar */}
+      <aside className="hidden lg:flex w-56 shrink-0 flex-col h-full bg-[#000000]/20 p-5 select-none">
+        {content}
+      </aside>
+    </>
   );
 };
 

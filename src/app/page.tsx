@@ -26,6 +26,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('library');
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
   
   // Show searching indicator while debounce is pending
@@ -52,6 +53,7 @@ export default function Home() {
     setSelectedArtist(null);
     setSelectedAlbum(null);
     setSelectedGenre(null);
+    setIsMobileMenuOpen(false);
   };
 
   // Search filtering
@@ -471,16 +473,16 @@ export default function Home() {
   return (
     <div className="flex h-screen w-screen overflow-hidden text-zinc-300 bg-[#09090B] font-sans">
       {/* Sidebar (Left) */}
-      <Sidebar activeTab={activeTab} setActiveTab={handleTabChange} />
+      <Sidebar activeTab={activeTab} setActiveTab={handleTabChange} isMobileOpen={isMobileMenuOpen} onMobileClose={() => setIsMobileMenuOpen(false)} />
 
       {/* Main Content Area (Right) */}
-      <div className="flex-grow flex flex-col h-full overflow-hidden bg-transparent">
+      <div className="flex-grow flex flex-col h-full overflow-hidden bg-transparent min-w-0">
         {/* Top Header Bar */}
-        <Topbar onSearch={handleSearch} />
+        <Topbar onSearch={handleSearch} onMenuToggle={() => setIsMobileMenuOpen((v) => !v)} />
 
         {/* Global Error Banner */}
         {error && (
-          <div className="mx-8 mt-2 bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-2.5 rounded-lg text-xs flex items-center justify-between">
+          <div className="mx-4 lg:mx-8 mt-2 bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-2.5 rounded-lg text-xs flex items-center justify-between">
             <span className="font-medium">{error}</span>
             <button onClick={() => setError(null)} className="font-bold opacity-60 hover:opacity-100">
               &times;
@@ -489,7 +491,7 @@ export default function Home() {
         )}
 
         {/* Main Content Pane (Scrollable) */}
-        <main className="flex-grow overflow-y-auto px-8 py-6">
+        <main className="flex-grow overflow-y-auto px-4 lg:px-8 py-4 lg:py-6">
           {isLoading ? (
             <div className="flex items-center justify-center h-full py-40">
               <div className="flex flex-col items-center gap-3">

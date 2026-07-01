@@ -4,23 +4,33 @@ import React from 'react';
 import { SearchBar } from '../ui/SearchBar';
 import { UploadButton } from '../ui/UploadButton';
 import { useMusicPlayer } from '@/providers/MusicPlayerProvider';
-import { RefreshCw, Loader2 } from 'lucide-react';
+import { RefreshCw, Loader2, Menu } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface TopbarProps {
   onSearch?: (term: string) => void;
+  onMenuToggle?: () => void;
 }
 
-export const Topbar: React.FC<TopbarProps> = ({ onSearch }) => {
+export const Topbar: React.FC<TopbarProps> = ({ onSearch, onMenuToggle }) => {
   const { isScanning, scanProgress, triggerScan } = useMusicPlayer();
 
   return (
-    <header className="flex items-center justify-between py-4 px-8 bg-transparent">
-      {/* Search Input on the Left */}
-      <SearchBar onSearch={onSearch} />
+    <header className="flex items-center justify-between py-3 px-4 lg:px-8 bg-transparent gap-2">
+      {/* Hamburger + Search */}
+      <div className="flex items-center gap-2 min-w-0 flex-grow">
+        <button
+          onClick={onMenuToggle}
+          className="lg:hidden p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors"
+          title="Menu"
+        >
+          <Menu size={16} />
+        </button>
+        <SearchBar onSearch={onSearch} />
+      </div>
 
       {/* Actions on the Right */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 lg:gap-3 shrink-0">
         {/* Scan Library */}
         <motion.button
           whileHover={{ scale: isScanning ? 1 : 1.02 }}

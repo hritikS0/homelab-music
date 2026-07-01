@@ -118,7 +118,7 @@ export const FullscreenPlayer: React.FC<FullscreenPlayerProps> = ({ isOpen, onCl
       animate={{ y: 0 }}
       exit={{ y: '100%' }}
       transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-      className="fixed inset-0 z-50 bg-[#09090B] flex flex-col justify-between p-8 sm:p-12 overflow-hidden select-none"
+      className="fixed inset-0 z-50 bg-[#09090B] flex flex-col justify-between p-4 sm:p-8 md:p-12 overflow-hidden select-none"
     >
       {/* Liquid color-bleeding background derived from artwork */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
