@@ -23,7 +23,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       const picture = metadata.common.picture?.[0];
 
       if (!picture) {
-        return new NextResponse('No artwork found', { status: 404 });
+        return new NextResponse(null, {
+          status: 204,
+          headers: { 'Cache-Control': 'public, max-age=604800, immutable' },
+        });
       }
 
       logger.info(`[REQUEST SUCCESS] ${method} ${path} - Serving artwork (${picture.format || 'image/jpeg'})`);
@@ -35,7 +38,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       });
     } catch (parseErr) {
       logger.warn(parseErr, `Failed to parse metadata picture for ${song.filePath}`);
-      return new NextResponse('Failed to parse artwork', { status: 404 });
+      return new NextResponse(null, {
+        status: 204,
+        headers: { 'Cache-Control': 'public, max-age=604800, immutable' },
+      });
     }
   } catch (error) {
     return handleApiError(error, req);

@@ -55,7 +55,8 @@ export class LibraryScannerService {
       case '.mp3': return 'audio/mpeg';
       case '.flac': return 'audio/flac';
       case '.wav': return 'audio/wav';
-      case '.m4a': return 'audio/mp4';
+      case '.m4a':
+      case '.mp4': return 'audio/mp4';
       case '.aac': return 'audio/aac';
       case '.ogg': return 'audio/ogg';
       default: return 'audio/mpeg';
@@ -91,7 +92,7 @@ export class LibraryScannerService {
 
     const startTime = Date.now();
     const errorDetails: string[] = [];
-    const supportedExtensions = new Set(['.mp3', '.flac', '.wav', '.m4a', '.aac', '.ogg']);
+    const supportedExtensions = new Set(['.mp3', '.flac', '.wav', '.m4a', '.mp4', '.aac', '.ogg']);
 
     let scannedCount = 0;
     let importedCount = 0;
