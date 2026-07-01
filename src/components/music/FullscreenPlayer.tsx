@@ -13,7 +13,8 @@ import {
   Shuffle, 
   Repeat,
   ListMusic,
-  Music
+  Music,
+  Heart
 } from 'lucide-react';
 import { useMusicPlayer } from '@/providers/MusicPlayerProvider';
 import { motion } from 'framer-motion';
@@ -38,7 +39,8 @@ export const FullscreenPlayer: React.FC<FullscreenPlayerProps> = ({ isOpen, onCl
     setVolume,
     seek,
     toggleLoop,
-    toggleShuffle
+    toggleShuffle,
+    toggleFavorite
   } = useMusicPlayer();
 
   const [imgError, setImgError] = useState(false);
@@ -173,16 +175,34 @@ export const FullscreenPlayer: React.FC<FullscreenPlayerProps> = ({ isOpen, onCl
           </div>
 
           {/* Typography details */}
-          <div className="text-center md:text-left min-w-0 w-full px-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight truncate">
-              {activeSong.title}
-            </h1>
-            <p className="text-sm sm:text-base text-zinc-400 font-medium truncate mt-1.5">
-              {activeSong.artist || 'Unknown Artist'}
-            </p>
-            <p className="text-[10px] text-zinc-500 font-semibold tracking-wider uppercase mt-1">
-              {activeSong.album || 'Unknown Album'}
-            </p>
+          <div className="flex items-center justify-between gap-4 w-full px-2 text-left">
+            <div className="min-w-0 flex-grow">
+              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight truncate">
+                {activeSong.title}
+              </h1>
+              <p className="text-sm sm:text-base text-zinc-400 font-medium truncate mt-1.5">
+                {activeSong.artist || 'Unknown Artist'}
+              </p>
+              <p className="text-[10px] text-zinc-500 font-semibold tracking-wider uppercase mt-1">
+                {activeSong.album || 'Unknown Album'}
+              </p>
+            </div>
+            <motion.button
+              whileTap={{ scale: 0.85 }}
+              onClick={() => toggleFavorite(activeSong.id)}
+              className="p-3 rounded-full bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-all shrink-0 cursor-pointer"
+              title={activeSong.liked ? "Remove from Favorites" : "Save to Favorites"}
+            >
+              <motion.div
+                animate={activeSong.liked ? { scale: [1, 1.4, 0.9, 1.1, 1] } : { scale: 1 }}
+                transition={{ duration: 0.45 }}
+              >
+                <Heart
+                  size={22}
+                  className={activeSong.liked ? "fill-rose-500 text-rose-500" : "text-zinc-400"}
+                />
+              </motion.div>
+            </motion.button>
           </div>
         </div>
 

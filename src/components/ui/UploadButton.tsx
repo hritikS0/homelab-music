@@ -38,7 +38,8 @@ export const UploadButton: React.FC = () => {
         <motion.div
           whileHover={{ scale: uploading ? 1 : 1.02 }}
           whileTap={{ scale: uploading ? 1 : 0.98 }}
-          className={`relative overflow-hidden inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-[11px] cursor-pointer select-none transition-all border ${
+          title={uploading ? 'Uploading...' : 'Upload MP3'}
+          className={`relative overflow-hidden inline-flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-lg font-semibold text-[11px] cursor-pointer select-none transition-all border ${
             uploading
               ? 'bg-zinc-900 text-zinc-500 border-transparent cursor-not-allowed'
               : 'bg-[#18181B] hover:bg-[#27272A] border-zinc-800 text-zinc-200'
@@ -47,12 +48,12 @@ export const UploadButton: React.FC = () => {
           {uploading ? (
             <>
               <Loader2 className="h-3 w-3 animate-spin text-zinc-500" />
-              <span>Uploading...</span>
+              <span className="hidden sm:inline">Uploading...</span>
             </>
           ) : (
             <>
               <Upload className="h-3 w-3 text-zinc-400" />
-              <span>Upload MP3</span>
+              <span className="hidden sm:inline">Upload MP3</span>
             </>
           )}
         </motion.div>

@@ -11,7 +11,8 @@ import {
   VolumeX, 
   Music,
   Shuffle,
-  Repeat
+  Repeat,
+  Heart
 } from 'lucide-react';
 import { useMusicPlayer } from '@/providers/MusicPlayerProvider';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -32,7 +33,8 @@ export const BottomPlayer: React.FC = () => {
     seek,
     toggleLoop,
     toggleShuffle,
-    setIsFullscreenOpen
+    setIsFullscreenOpen,
+    toggleFavorite
   } = useMusicPlayer();
 
   const [imgError, setImgError] = useState(false);
@@ -80,11 +82,19 @@ export const BottomPlayer: React.FC = () => {
           transition={{ duration: 0.2 }}
           className="fixed bottom-0 left-0 right-0 h-16 lg:h-20 bg-[#121212]/95 border-t border-[#282828]/40 backdrop-blur-md z-30 px-3 lg:px-6 flex items-center justify-between gap-2"
         >
+          {/* Top Progress Line (Mobile Only) */}
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-zinc-800/40 sm:hidden">
+            <div 
+              className="h-full bg-emerald-500 transition-all duration-100" 
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+
           {/* Active Song Info (Left) */}
-          <div className="flex items-center gap-2 lg:gap-3 w-auto lg:w-1/4 lg:min-w-[180px] min-w-0 max-w-[40%] lg:max-w-none">
+          <div className="flex items-center gap-2.5 lg:gap-4 w-auto sm:w-1/4 lg:min-w-[220px] min-w-0 max-w-[65%] sm:max-w-[40%] lg:max-w-none flex-grow sm:flex-grow-0">
             <div 
               onClick={() => setIsFullscreenOpen(true)}
-              className="flex items-center gap-2 lg:gap-3 cursor-pointer group/meta min-w-0 flex-grow"
+              className="flex items-center gap-2 lg:gap-3 cursor-pointer group/meta min-w-0"
             >
               <div className="h-8 w-8 lg:h-10 lg:w-10 rounded bg-[#282828] border border-zinc-800/40 flex items-center justify-center shadow-sm shrink-0 overflow-hidden relative group-hover/meta:opacity-80 transition-opacity">
                 {!imgError ? (
@@ -99,7 +109,7 @@ export const BottomPlayer: React.FC = () => {
                   <Music size={13} className="text-zinc-400" />
                 )}
               </div>
-              <div className="min-w-0 pr-1 lg:pr-2">
+              <div className="min-w-0 pr-1">
                 <span className="block text-[11px] lg:text-xs font-semibold text-zinc-100 group-hover/meta:text-emerald-400 truncate transition-colors">
                   {activeSong.title}
                 </span>
@@ -108,14 +118,32 @@ export const BottomPlayer: React.FC = () => {
                 </span>
               </div>
             </div>
+
+            {/* Heart/Like Button */}
+            <motion.button
+              whileTap={{ scale: 0.85 }}
+              onClick={() => toggleFavorite(activeSong.id)}
+              className="p-1.5 rounded-full hover:bg-zinc-800/50 text-zinc-400 hover:text-white transition-all shrink-0 cursor-pointer"
+              title={activeSong.liked ? "Remove from Favorites" : "Save to Favorites"}
+            >
+              <motion.div
+                animate={activeSong.liked ? { scale: [1, 1.4, 0.9, 1.1, 1] } : { scale: 1 }}
+                transition={{ duration: 0.45 }}
+              >
+                <Heart
+                  size={13}
+                  className={activeSong.liked ? "fill-rose-500 text-rose-500" : "text-zinc-400"}
+                />
+              </motion.div>
+            </motion.button>
           </div>
 
-          {/* Central Controls & Timeline (Center) */}
-          <div className="flex flex-col items-center gap-0.5 lg:gap-1.5 flex-shrink-0">
+          {/* Central Controls & Timeline (Center) - Hidden on mobile */}
+          <div className="hidden sm:flex flex-col items-center gap-0.5 lg:gap-1.5 flex-grow max-w-[450px]">
             <div className="flex items-center gap-2 lg:gap-4">
               <button
                 onClick={toggleShuffle}
-                className={`p-1 transition-colors hidden sm:block ${
+                className={`p-1 transition-colors ${
                   isShuffled ? 'text-emerald-500' : 'text-zinc-400 hover:text-zinc-200'
                 }`}
                 title="Shuffle"
@@ -149,7 +177,7 @@ export const BottomPlayer: React.FC = () => {
 
               <button
                 onClick={toggleLoop}
-                className={`p-1 transition-colors hidden sm:block ${
+                className={`p-1 transition-colors ${
                   isLooping ? 'text-emerald-500' : 'text-zinc-400 hover:text-zinc-200'
                 }`}
                 title="Repeat"
@@ -159,8 +187,8 @@ export const BottomPlayer: React.FC = () => {
             </div>
 
             {/* Timeline */}
-            <div className="flex items-center gap-1.5 lg:gap-2.5 w-full max-w-[280px] lg:max-w-none text-[9px] font-mono font-medium text-zinc-500 select-none">
-              <span className="w-5 text-right hidden sm:block">{formatTime(currentTime)}</span>
+            <div className="flex items-center gap-1.5 lg:gap-2.5 w-full text-[9px] font-mono font-medium text-zinc-500 select-none">
+              <span className="w-5 text-right">{formatTime(currentTime)}</span>
               <input
                 type="range"
                 min="0"
@@ -172,11 +200,38 @@ export const BottomPlayer: React.FC = () => {
                   background: `linear-gradient(to right, #10B981 0%, #10B981 ${progressPct}%, rgba(255, 255, 255, 0.15) ${progressPct}%, rgba(255, 255, 255, 0.15) 100%)`
                 }}
               />
-              <span className="w-5 text-left hidden sm:block">{formatTime(duration)}</span>
+              <span className="w-5 text-left">{formatTime(duration)}</span>
             </div>
           </div>
 
-          {/* Volume & Aux Tools (Right) */}
+          {/* Mobile Controls (Right) - Visible only on mobile */}
+          <div className="flex sm:hidden items-center gap-1.5 shrink-0">
+            <button
+              onClick={playPrev}
+              className="p-1.5 text-zinc-400 hover:text-white transition-colors"
+              title="Previous"
+            >
+              <SkipBack size={13} fill="currentColor" />
+            </button>
+
+            <button
+              onClick={togglePlay}
+              className="h-8 w-8 rounded-full bg-white text-zinc-950 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-sm"
+              title={isPlaying ? 'Pause' : 'Play'}
+            >
+              {isPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" className="ml-0.5" />}
+            </button>
+
+            <button
+              onClick={playNext}
+              className="p-1.5 text-zinc-400 hover:text-white transition-colors"
+              title="Next"
+            >
+              <SkipForward size={13} fill="currentColor" />
+            </button>
+          </div>
+
+          {/* Volume & Aux Tools (Right) - Hidden on mobile */}
           <div className="items-center justify-end gap-2.5 w-auto lg:w-1/4 hidden lg:flex">
             <button onClick={toggleMute} className="text-zinc-400 hover:text-white transition-colors">
               {volume === 0 ? <VolumeX size={14} /> : <Volume2 size={14} />}

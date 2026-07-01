@@ -38,7 +38,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   }, []);
 
   return (
-    <div className="relative w-64">
+    <div className="relative w-full max-w-[160px] sm:max-w-[240px] md:w-64">
       <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none text-zinc-500">
         <Search size={13} />
       </div>

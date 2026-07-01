@@ -19,6 +19,8 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isMobileOpen, onMobileClose }) => {
+  const [logoError, setLogoError] = React.useState(false);
+
   const mainNav = [
     { id: 'library', label: 'Library', icon: Library },
     { id: 'albums', label: 'Albums', icon: Disc },
@@ -38,9 +40,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isMob
   const content = (
     <>
       <div className="flex items-center gap-2.5 mb-8 pl-1">
-        <div className="h-6 w-6 rounded bg-emerald-500 flex items-center justify-center shadow-sm">
-          <Music size={13} className="text-black" />
-        </div>
+        {!logoError ? (
+          <img 
+            src="/logo.png" 
+            alt="Homelab Music Logo" 
+            className="h-6 w-6 object-contain rounded shadow-sm"
+            onError={() => setLogoError(true)}
+          />
+        ) : (
+          <div className="h-6 w-6 rounded bg-emerald-500 flex items-center justify-center shadow-sm">
+            <Music size={13} className="text-black" />
+          </div>
+        )}
         <span className="font-bold text-sm tracking-tight text-white">Homelab Music</span>
       </div>
 

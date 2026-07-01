@@ -93,20 +93,26 @@ export const SongRow: React.FC<SongRowProps> = ({ song, index }) => {
       {/* Duration, Favorite & Delete */}
       <div className="flex items-center gap-5 shrink-0">
         {/* Favorite heart button */}
-        <button
+        <motion.button
+          whileTap={{ scale: 0.85 }}
           onClick={(e) => {
             e.stopPropagation();
             toggleFavorite(song.id);
           }}
-          className="p-1 rounded transition-all duration-150"
+          className="p-1 rounded transition-all duration-150 cursor-pointer"
           title={song.liked ? 'Remove from favorites' : 'Add to favorites'}
         >
-          <Heart
-            size={11}
-            className={song.liked ? 'text-emerald-400' : 'text-zinc-600 hover:text-zinc-400'}
-            fill={song.liked ? 'currentColor' : 'none'}
-          />
-        </button>
+          <motion.div
+            animate={song.liked ? { scale: [1, 1.4, 0.9, 1.1, 1] } : { scale: 1 }}
+            transition={{ duration: 0.45 }}
+          >
+            <Heart
+              size={12}
+              className={song.liked ? 'text-rose-500' : 'text-zinc-600 hover:text-zinc-450'}
+              fill={song.liked ? 'currentColor' : 'none'}
+            />
+          </motion.div>
+        </motion.button>
 
         <span className="text-[11px] text-zinc-500 font-mono">
           {formatDuration(song.duration)}

@@ -16,9 +16,9 @@ export const Topbar: React.FC<TopbarProps> = ({ onSearch, onMenuToggle }) => {
   const { isScanning, scanProgress, triggerScan } = useMusicPlayer();
 
   return (
-    <header className="flex items-center justify-between py-3 px-4 lg:px-8 bg-transparent gap-2">
+    <header className="flex items-center justify-between py-3 px-3 sm:px-4 lg:px-8 bg-transparent gap-1.5 sm:gap-2">
       {/* Hamburger + Search */}
-      <div className="flex items-center gap-2 min-w-0 flex-grow">
+      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-grow">
         <button
           onClick={onMenuToggle}
           className="lg:hidden p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-800/50 transition-colors"
@@ -37,7 +37,8 @@ export const Topbar: React.FC<TopbarProps> = ({ onSearch, onMenuToggle }) => {
           whileTap={{ scale: isScanning ? 1 : 0.98 }}
           onClick={() => triggerScan()}
           disabled={isScanning}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 border border-transparent ${
+          title={isScanning ? (scanProgress || 'Scanning...') : 'Scan Library'}
+          className={`flex items-center justify-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 border border-transparent cursor-pointer ${
             isScanning
               ? 'bg-zinc-900 text-zinc-500 cursor-not-allowed'
               : 'bg-zinc-900/60 hover:bg-zinc-900 text-zinc-300 border-zinc-800/40 hover:border-zinc-800'
@@ -46,12 +47,12 @@ export const Topbar: React.FC<TopbarProps> = ({ onSearch, onMenuToggle }) => {
           {isScanning ? (
             <>
               <Loader2 size={11} className="animate-spin text-zinc-500" />
-              <span>{scanProgress || 'Scanning...'}</span>
+              <span className="hidden sm:inline">{scanProgress || 'Scanning...'}</span>
             </>
           ) : (
             <>
               <RefreshCw size={11} className="text-zinc-400" />
-              <span>Scan Library</span>
+              <span className="hidden sm:inline">Scan Library</span>
             </>
           )}
         </motion.button>
