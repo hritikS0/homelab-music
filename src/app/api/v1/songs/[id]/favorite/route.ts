@@ -5,7 +5,7 @@ import { handleApiError } from '@/lib/response';
 import { logger } from '@/config/logger';
 
 type RouteParams = {
-  params: Promise<{ id: string }> | { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
