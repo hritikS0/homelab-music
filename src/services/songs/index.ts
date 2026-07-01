@@ -116,6 +116,15 @@ export class SongService {
       // Ignore file delete failure if file is already missing
     }
   }
+
+  public async toggleFavorite(id: string): Promise<Song> {
+    const song = await this.songRepository.findById(id);
+    if (!song) {
+      throw AppError.notFound('Song not found');
+    }
+
+    return this.songRepository.update(id, { liked: !song.liked });
+  }
 }
 
 export default SongService;

@@ -92,6 +92,9 @@ export class JsonSongRepository implements SongRepository {
         size: data.size,
         filePath: data.filePath,
         fileName: data.fileName,
+        lyrics: data.lyrics ?? null,
+        syncLyrics: data.syncLyrics ?? null,
+        liked: data.liked ?? false,
         createdAt: new Date(),
         updatedAt: new Date(),
       };

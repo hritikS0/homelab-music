@@ -76,30 +76,28 @@ export const FullscreenPlayer: React.FC<FullscreenPlayerProps> = ({ isOpen, onCl
     }
   };
 
-  // Apple Music fluid lyrics simulation based on current time
-  const lyrics = [
-    { time: 0, text: "🎵 Streaming from your private Homelab server..." },
-    { time: 5, text: "Searching through the digital wilderness" },
-    { time: 12, text: "Lost in the frequency of local storage" },
-    { time: 18, text: "And the files keep streaming in perfect sync" },
-    { time: 24, text: "Through Termux, through Android, through the wire" },
-    { time: 30, text: "No cloud dependencies required anymore" },
-    { time: 36, text: "We walk the folders, we find the source" },
-    { time: 42, text: "A single database, a single truth" },
-    { time: 48, text: "Now playing: " + (activeSong?.title || "your local audio collection") },
-    { time: 55, text: "Under the almost black sky of design" },
-    { time: 65, text: "Restraint and whitespace guide the sound" },
-    { time: 75, text: "Enjoying the premium macOS feel..." }
-  ];
+  // Use synced lyrics from song metadata, or build unsynchronized from plain text
+  const lyrics = activeSong?.syncLyrics && activeSong.syncLyrics.length > 0
+    ? activeSong.syncLyrics
+    : activeSong?.lyrics
+      ? activeSong.lyrics.split('\n').filter(Boolean).map((line, i) => ({
+          time: i * 99999,
+          text: line.replace(/^\[.*?\]\s*/, ''),
+        }))
+      : [];
 
-  const currentLyricIndex = lyrics.reduce((acc, lyric, idx) => {
-    if (currentTime >= lyric.time) return idx;
-    return acc;
-  }, 0);
+  const hasSyncedLyrics = activeSong?.syncLyrics && activeSong.syncLyrics.length > 0;
 
-  // Auto-scroll lyrics
+  const currentLyricIndex = hasSyncedLyrics
+    ? lyrics.reduce((acc, lyric, idx) => {
+        if (currentTime >= lyric.time) return idx;
+        return acc;
+      }, 0)
+    : -1;
+
+  // Auto-scroll lyrics for synced mode
   useEffect(() => {
-    if (lyricsContainerRef.current) {
+    if (hasSyncedLyrics && lyricsContainerRef.current && currentLyricIndex >= 0) {
       const activeElement = lyricsContainerRef.current.children[currentLyricIndex] as HTMLElement;
       if (activeElement) {
         lyricsContainerRef.current.scrollTo({
@@ -108,7 +106,7 @@ export const FullscreenPlayer: React.FC<FullscreenPlayerProps> = ({ isOpen, onCl
         });
       }
     }
-  }, [currentLyricIndex]);
+  }, [currentLyricIndex, hasSyncedLyrics]);
 
   if (!isOpen || !activeSong) return null;
 
@@ -187,33 +185,39 @@ export const FullscreenPlayer: React.FC<FullscreenPlayerProps> = ({ isOpen, onCl
         </div>
 
         {/* Right Column: Liquid scrolling lyrics view */}
-        <div className="hidden md:flex flex-col h-full w-full max-h-[380px] overflow-hidden relative">
-          <div 
-            ref={lyricsContainerRef}
-            className="flex-grow overflow-y-auto space-y-6 scrollbar-none pr-4"
-            style={{ maskImage: 'linear-gradient(to bottom, transparent 0%, white 25%, white 75%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, white 25%, white 75%, transparent 100%)' }}
-          >
-            {/* Blank padding top */}
-            <div className="h-24" />
-            {lyrics.map((lyric, idx) => {
-              const isActive = idx === currentLyricIndex;
-              return (
-                <div
-                  key={idx}
-                  onClick={() => seek(lyric.time)}
-                  className={`text-base md:text-xl font-bold tracking-tight cursor-pointer transition-all duration-300 origin-left ${
-                    isActive 
-                      ? 'text-white scale-102 opacity-100' 
-                      : 'text-white/25 hover:text-white/50 scale-98'
-                  }`}
-                >
-                  {lyric.text}
-                </div>
-              );
-            })}
-            {/* Blank padding bottom */}
-            <div className="h-32" />
-          </div>
+        <div className="flex flex-col h-full w-full max-h-[380px] overflow-hidden relative">
+          {lyrics.length > 0 ? (
+            <div 
+              ref={lyricsContainerRef}
+              className="flex-grow overflow-y-auto space-y-6 scrollbar-none pr-4"
+              style={{ maskImage: 'linear-gradient(to bottom, transparent 0%, white 25%, white 75%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, white 25%, white 75%, transparent 100%)' }}
+            >
+              <div className="h-24" />
+              {lyrics.map((lyric, idx) => {
+                const isActive = hasSyncedLyrics && idx === currentLyricIndex;
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => hasSyncedLyrics && seek(lyric.time)}
+                    className={`text-base md:text-xl font-bold tracking-tight cursor-pointer transition-all duration-300 origin-left ${
+                      isActive 
+                        ? 'text-white scale-102 opacity-100' 
+                        : hasSyncedLyrics
+                          ? 'text-white/25 hover:text-white/50 scale-98'
+                          : 'text-white/60 hover:text-white/90'
+                    }`}
+                  >
+                    {lyric.text}
+                  </div>
+                );
+              })}
+              <div className="h-32" />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-full text-white/20 text-sm font-medium">
+              No lyrics available
+            </div>
+          )}
         </div>
       </div>
 

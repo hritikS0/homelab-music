@@ -11,7 +11,7 @@ import { AlbumCard } from '@/components/music/AlbumCard';
 import { EmptyLibrary } from '@/components/music/EmptyLibrary';
 import { FullscreenPlayer } from '@/components/music/FullscreenPlayer';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, ArrowLeft } from 'lucide-react';
+import { Music, ArrowLeft, Heart } from 'lucide-react';
 
 export default function Home() {
   const {
@@ -28,12 +28,14 @@ export default function Home() {
   // Dedicated detail page states
   const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
   const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null);
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     setSearchTerm('');
     setSelectedArtist(null);
     setSelectedAlbum(null);
+    setSelectedGenre(null);
   };
 
   // Search filtering
@@ -308,6 +310,48 @@ export default function Home() {
         );
 
       case 'genres':
+        if (selectedGenre) {
+          const genreSongs = genresMap.get(selectedGenre) || [];
+          const firstSong = genreSongs[0];
+
+          return (
+            <div className="space-y-8 pb-32">
+              <button
+                onClick={() => setSelectedGenre(null)}
+                className="flex items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <ArrowLeft size={13} />
+                <span>Back to Genres</span>
+              </button>
+
+              <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 pb-2">
+                <div className="relative aspect-square w-40 rounded-lg bg-zinc-900 border border-zinc-800/40 flex items-center justify-center overflow-hidden shadow-md shrink-0">
+                  {firstSong ? (
+                    <img
+                      src={`/api/v1/songs/artwork/${firstSong.id}`}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-cover"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                  ) : null}
+                  <Music size={28} className="text-zinc-600" />
+                </div>
+                <div className="text-center sm:text-left">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Genre</span>
+                  <h1 className="text-2xl font-bold text-white tracking-tight mt-1">{selectedGenre}</h1>
+                  <p className="text-xs text-zinc-400 font-medium mt-1">
+                    {genreSongs.length} {genreSongs.length === 1 ? 'track' : 'tracks'} in your library
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <SongList songs={genreSongs} />
+              </div>
+            </div>
+          );
+        }
+
         if (uniqueGenres.length === 0) {
           return (
             <div className="py-20 text-center text-xs text-zinc-500">
@@ -322,10 +366,7 @@ export default function Home() {
               return (
                 <div
                   key={genre}
-                  onClick={() => {
-                    setSearchTerm(genre === 'Unknown Genre' ? '' : genre);
-                    setActiveTab('library');
-                  }}
+                  onClick={() => setSelectedGenre(genre)}
                   className="bg-[#18181B]/40 hover:bg-[#18181B]/80 border border-zinc-850 hover:border-zinc-750 p-4 rounded-lg flex items-center justify-between cursor-pointer select-none transition-all duration-150 group"
                 >
                   <div className="min-w-0">
@@ -342,12 +383,32 @@ export default function Home() {
           </div>
         );
 
-      case 'favorites':
+      case 'favorites': {
+        const favoriteSongs = songs.filter((s) => s.liked);
+        if (favoriteSongs.length === 0) {
+          return (
+            <div className="py-20 text-center text-xs text-zinc-500">
+              <Heart size={24} className="mx-auto mb-3 text-zinc-700" />
+              No favorite tracks tagged yet.
+            </div>
+          );
+        }
+
         return (
-          <div className="py-20 text-center text-xs text-zinc-500">
-            No favorite tracks tagged yet.
+          <div className="space-y-8 pb-32">
+            <div className="flex items-center gap-3 pb-2">
+              <div className="h-10 w-10 rounded-lg bg-rose-500/20 flex items-center justify-center">
+                <Heart size={18} className="text-rose-400" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-white tracking-tight">Favorites</h1>
+                <p className="text-xs text-zinc-500 mt-0.5">{favoriteSongs.length} {favoriteSongs.length === 1 ? 'track' : 'tracks'}</p>
+              </div>
+            </div>
+            <SongList songs={favoriteSongs} />
           </div>
         );
+      }
 
       case 'settings':
         return (
@@ -396,7 +457,7 @@ export default function Home() {
         <main className="flex-grow overflow-y-auto px-8 py-6">
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeTab + (selectedArtist ? `-${selectedArtist}` : '') + (selectedAlbum ? `-${selectedAlbum}` : '')}
+              key={activeTab + (selectedArtist ? `-${selectedArtist}` : '') + (selectedAlbum ? `-${selectedAlbum}` : '') + (selectedGenre ? `-${selectedGenre}` : '')}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}

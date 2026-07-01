@@ -188,6 +188,8 @@ export class LibraryScannerService {
                 year: metadata.year,
                 track: metadata.track,
                 disc: metadata.disc,
+                lyrics: metadata.lyrics,
+                syncLyrics: metadata.syncLyrics,
                 mimeType,
                 size: stats.size,
                 filePath,

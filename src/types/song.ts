@@ -1,3 +1,8 @@
+export interface SyncLyric {
+  time: number;
+  text: string;
+}
+
 export interface Song {
   id: string;
   hash: string;
@@ -13,6 +18,9 @@ export interface Song {
   size: number;
   filePath: string;
   fileName: string;
+  lyrics: string | null;
+  syncLyrics: SyncLyric[] | null;
+  liked: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,6 +39,9 @@ export interface CreateSongInput {
   size: number;
   filePath: string;
   fileName: string;
+  lyrics?: string | null;
+  syncLyrics?: SyncLyric[] | null;
+  liked?: boolean;
 }
 
 export interface UpdateSongInput {
@@ -47,4 +58,7 @@ export interface UpdateSongInput {
   size?: number;
   filePath?: string;
   fileName?: string;
+  lyrics?: string | null;
+  syncLyrics?: SyncLyric[] | null;
+  liked?: boolean;
 }

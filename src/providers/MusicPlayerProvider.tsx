@@ -21,6 +21,8 @@ interface MusicPlayerContextType {
   currentProgress: string | null;
   error: string | null;
 
+  toggleFavorite: (id: string) => Promise<void>;
+
   // Scanner integrations
   isScanning: boolean;
   scanSummary: any | null;
@@ -390,6 +392,22 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+  const toggleFavorite = async (id: string): Promise<void> => {
+    try {
+      const updatedSong = await safeFetch(`/api/v1/songs/${id}/favorite`, {
+        method: 'PATCH',
+      });
+      setSongs((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, liked: updatedSong.liked } : s))
+      );
+      if (activeSong?.id === id) {
+        setActiveSongState((prev) => (prev ? { ...prev, liked: updatedSong.liked } : null));
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to toggle favorite');
+    }
+  };
+
   const handleDelete = async (id: string): Promise<void> => {
     if (!confirm('Are you sure you want to delete this song?')) return;
     try {
@@ -542,6 +560,7 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
         playPrev,
         toggleLoop,
         toggleShuffle,
+        toggleFavorite,
         handleUpload,
         handleDelete,
         setError,

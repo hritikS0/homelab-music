@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Play, Pause, Trash2, Music } from 'lucide-react';
+import { Play, Pause, Trash2, Music, Heart } from 'lucide-react';
 import { Song } from '@/types/song';
 import { useMusicPlayer } from '@/providers/MusicPlayerProvider';
 import { motion } from 'framer-motion';
@@ -13,7 +13,7 @@ interface SongRowProps {
 }
 
 export const SongRow: React.FC<SongRowProps> = ({ song, index }) => {
-  const { activeSong, isPlaying, setActiveSong, togglePlay, handleDelete } = useMusicPlayer();
+  const { activeSong, isPlaying, setActiveSong, togglePlay, handleDelete, toggleFavorite } = useMusicPlayer();
   const isActive = activeSong?.id === song.id;
   const [imgError, setImgError] = useState(false);
 
@@ -89,8 +89,23 @@ export const SongRow: React.FC<SongRowProps> = ({ song, index }) => {
         {song.album || 'Unknown Album'}
       </div>
 
-      {/* Duration & Delete */}
+      {/* Duration, Favorite & Delete */}
       <div className="flex items-center gap-5 shrink-0">
+        {/* Favorite heart button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleFavorite(song.id);
+          }}
+          className="p-1 rounded transition-all duration-150"
+          title={song.liked ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          <Heart
+            size={11}
+            className={song.liked ? 'text-emerald-400 fill-emerald-400' : 'text-zinc-600 hover:text-zinc-400'}
+          />
+        </button>
+
         <span className="text-[11px] text-zinc-500 font-mono">
           {formatDuration(song.duration)}
         </span>

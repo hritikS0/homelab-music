@@ -1,5 +1,6 @@
 import { parseFile } from 'music-metadata';
 import path from 'node:path';
+import { SyncLyric } from '@/types/song';
 
 export interface ExtractedMetadata {
   title: string;
@@ -12,6 +13,8 @@ export interface ExtractedMetadata {
   disc: number | null;
   bitrate: number | null;
   sampleRate: number | null;
+  lyrics: string | null;
+  syncLyrics: SyncLyric[] | null;
 }
 
 export class MetadataService {
@@ -30,10 +33,28 @@ export class MetadataService {
       disc: null,
       bitrate: null,
       sampleRate: null,
+      lyrics: null,
+      syncLyrics: null,
     };
 
     try {
       const metadata = await parseFile(filePath);
+      const lyricsTag = metadata.common.lyrics?.[0];
+      let syncLyrics: SyncLyric[] | null = null;
+      let lyrics: string | null = null;
+
+      if (lyricsTag) {
+        lyrics = lyricsTag.text ?? null;
+        if (lyricsTag.syncText && lyricsTag.syncText.length > 0) {
+          syncLyrics = lyricsTag.syncText
+            .filter((l) => l.timestamp !== undefined)
+            .map((l) => ({
+              time: l.timestamp! / 1000,
+              text: l.text,
+            }));
+        }
+      }
+
       return {
         title: metadata.common.title || fallback.title,
         artist: metadata.common.artist || metadata.common.albumartist || fallback.artist,
@@ -45,6 +66,8 @@ export class MetadataService {
         disc: metadata.common.disk?.no || null,
         bitrate: metadata.format.bitrate || null,
         sampleRate: metadata.format.sampleRate || null,
+        lyrics,
+        syncLyrics,
       };
     } catch {
       return fallback;

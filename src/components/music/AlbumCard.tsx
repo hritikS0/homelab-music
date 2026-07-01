@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Play, Music, Pause } from 'lucide-react';
+import { Play, Music, Pause, Heart } from 'lucide-react';
 import { Song } from '@/types/song';
 import { useMusicPlayer } from '@/providers/MusicPlayerProvider';
 import { motion } from 'framer-motion';
@@ -12,7 +12,7 @@ interface AlbumCardProps {
 }
 
 export const AlbumCard: React.FC<AlbumCardProps> = ({ song }) => {
-  const { activeSong, isPlaying, setActiveSong, togglePlay } = useMusicPlayer();
+  const { activeSong, isPlaying, setActiveSong, togglePlay, toggleFavorite } = useMusicPlayer();
   const isActive = activeSong?.id === song.id;
   const [imgError, setImgError] = useState(false);
 
@@ -45,6 +45,21 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ song }) => {
             isActive ? 'text-emerald-500' : 'text-zinc-600'
           }`} />
         )}
+
+        {/* Favorite heart button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleFavorite(song.id);
+          }}
+          className="absolute top-2 right-2 z-10 p-1 rounded-full transition-all duration-150"
+          title={song.liked ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          <Heart
+            size={12}
+            className={song.liked ? 'text-emerald-400 fill-emerald-400' : 'text-white/40 hover:text-white/70'}
+          />
+        </button>
 
         {/* Hover overlay play button */}
         <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-150">
