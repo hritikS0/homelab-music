@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useMusicPlayer } from '@/providers/MusicPlayerProvider';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
@@ -11,7 +11,7 @@ import { AlbumCard } from '@/components/music/AlbumCard';
 import { EmptyLibrary } from '@/components/music/EmptyLibrary';
 import { FullscreenPlayer } from '@/components/music/FullscreenPlayer';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, ArrowLeft, Heart, Loader2 } from 'lucide-react';
+import { Music, ArrowLeft, Heart } from 'lucide-react';
 
 export default function Home() {
   const {
@@ -25,21 +25,10 @@ export default function Home() {
 
   const [activeTab, setActiveTab] = useState('library');
   const [searchTerm, setSearchTerm] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
-  
-  // Show searching indicator while debounce is pending
-  useEffect(() => {
-    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    // Handled by Topbar/SearchBar debounce, but show brief indicator
-  }, [searchTerm]);
 
   const handleSearch = (term: string) => {
-    setIsSearching(true);
     setSearchTerm(term);
-    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    searchTimerRef.current = setTimeout(() => setIsSearching(false), 300);
   };
 
   // Dedicated detail page states
@@ -137,11 +126,8 @@ export default function Home() {
                 </h2>
                 {searchTerm && (
                   <div className="flex items-center gap-3">
-                    {isSearching && (
-                      <Loader2 size={11} className="animate-spin text-zinc-500" />
-                    )}
                     <button
-                      onClick={() => { setSearchTerm(''); setIsSearching(false); }}
+                      onClick={() => { setSearchTerm(''); }}
                       className="text-[10px] text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1 font-semibold cursor-pointer"
                     >
                       Showing results for &quot;{searchTerm}&quot; &bull; Clear Filter
@@ -149,16 +135,7 @@ export default function Home() {
                   </div>
                 )}
               </div>
-              {isSearching ? (
-                <div className="flex items-center justify-center py-16">
-                  <div className="flex flex-col items-center gap-2">
-                    <Loader2 size={16} className="animate-spin text-zinc-500" />
-                    <span className="text-[10px] text-zinc-500">Searching...</span>
-                  </div>
-                </div>
-              ) : (
-                <SongList songs={filteredSongs} />
-              )}
+              <SongList songs={filteredSongs} />
             </div>
           </div>
         );

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'node:fs';
-import { stat } from 'node:fs/promises';
-import { Readable } from 'node:stream';
+import { stat, open, readFile } from 'node:fs/promises';
 import { SongService } from '@/services/songs/index';
 import { songRepository } from '@/repositories/songs/index';
 import { handleApiError } from '@/lib/response';
@@ -39,12 +37,10 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     const range = req.headers.get('range');
 
     if (range) {
-      // Parse Range header (e.g. "bytes=32768-")
       const parts = range.replace(/bytes=/, '').split('-');
       const start = parseInt(parts[0], 10);
       const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
 
-      // Validate range
       if (isNaN(start) || start >= fileSize || end >= fileSize || start > end) {
         logger.info(`[REQUEST SUCCESS] ${method} ${path} (Range Not Satisfiable)`);
         return new NextResponse(null, {
@@ -57,11 +53,13 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       }
 
       const chunkSize = end - start + 1;
-      const fileStream = fs.createReadStream(filePath, { start, end });
-      const webStream = Readable.toWeb(fileStream);
+      const fd = await open(filePath, 'r');
+      const buffer = Buffer.alloc(chunkSize);
+      await fd.read(buffer, 0, chunkSize, start);
+      await fd.close();
 
       logger.info(`[REQUEST SUCCESS] ${method} ${path} (Partial Content)`);
-      return new NextResponse(webStream as unknown as ReadableStream, {
+      return new NextResponse(new Uint8Array(buffer), {
         status: 206,
         headers: {
           'Content-Range': `bytes ${start}-${end}/${fileSize}`,
@@ -70,21 +68,18 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
           'Content-Type': mimeType || 'audio/mpeg',
         },
       });
-    } else {
-      // Return whole file if no range header is requested
-      const fileStream = fs.createReadStream(filePath);
-      const webStream = Readable.toWeb(fileStream);
-
-      logger.info(`[REQUEST SUCCESS] ${method} ${path} (OK)`);
-      return new NextResponse(webStream as unknown as ReadableStream, {
-        status: 200,
-        headers: {
-          'Accept-Ranges': 'bytes',
-          'Content-Length': fileSize.toString(),
-          'Content-Type': mimeType || 'audio/mpeg',
-        },
-      });
     }
+
+    const fileBuffer = await readFile(filePath);
+    logger.info(`[REQUEST SUCCESS] ${method} ${path} (OK)`);
+    return new NextResponse(new Uint8Array(fileBuffer), {
+      status: 200,
+      headers: {
+        'Accept-Ranges': 'bytes',
+        'Content-Length': fileSize.toString(),
+        'Content-Type': mimeType || 'audio/mpeg',
+      },
+    });
   } catch (error) {
     return handleApiError(error, req);
   }

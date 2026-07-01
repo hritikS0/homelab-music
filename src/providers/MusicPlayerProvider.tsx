@@ -88,6 +88,7 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   // Loading state for initial fetch
   const [isLoading, setIsLoading] = useState(true);
+  const hasInitiallyLoaded = useRef(false);
 
   // Fullscreen player state
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
@@ -154,12 +155,15 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const fetchSongs = async () => {
-    setIsLoading(true);
+    if (!hasInitiallyLoaded.current) {
+      setIsLoading(true);
+    }
     try {
       const data = await safeFetch('/api/v1/songs');
       setSongs(
         (data as Song[]).map((s: Song) => ({ ...s, liked: s.liked ?? false }))
       );
+      hasInitiallyLoaded.current = true;
     } catch (err: any) {
       setError(err.message || 'Error loading library');
     } finally {
@@ -449,9 +453,10 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const onCanPlay = () => {
       console.log('[MusicPlayerEvent] oncanplay triggered');
     };
-    const onError = (e: any) => {
+    const onError = () => {
       const mediaError = audio.error;
-      console.error('[MusicPlayerEvent] onerror triggered:', mediaError?.code || e?.message || e);
+      const src = audio.src;
+      console.error('[MusicPlayerEvent] onerror triggered. code:', mediaError?.code, 'src:', src, 'readyState:', audio.readyState, 'networkState:', audio.networkState);
       // MEDIA_ERR_ABORTED (1) happens when changing src - ignore it
       if (mediaError?.code !== 1) {
         setIsPlaying(false);
@@ -501,16 +506,9 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (!audioRef.current) return;
     
     if (activeSong) {
-      const wasPlaying = isPlaying;
       console.log('[MusicPlayer] Active song changed. Setting src to:', `/api/v1/stream/${activeSong.id}`);
       audioRef.current.src = `/api/v1/stream/${activeSong.id}`;
-      if (wasPlaying) {
-        console.log('[MusicPlayer] wasPlaying is true, calling play()');
-        audioRef.current.play().catch((err) => {
-          console.error('[MusicPlayer] play() failed:', err);
-          setIsPlaying(false);
-        });
-      }
+      audioRef.current.load();
     } else {
       console.log('[MusicPlayer] No active song. Pausing audio.');
       audioRef.current.pause();
@@ -518,6 +516,21 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setIsPlaying(false);
     }
   }, [activeSong]);
+
+  // Play/pause based on isPlaying state
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !activeSong) return;
+
+    if (isPlaying) {
+      audio.play().catch((err) => {
+        console.error('[MusicPlayer] play() failed:', err);
+        setIsPlaying(false);
+      });
+    } else {
+      audio.pause();
+    }
+  }, [isPlaying, activeSong]);
 
   // Sync volume state
   useEffect(() => {
