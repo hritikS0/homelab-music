@@ -19,7 +19,8 @@ export default function Home() {
     error,
     setError,
     isFullscreenOpen,
-    setIsFullscreenOpen
+    setIsFullscreenOpen,
+    isLoading
   } = useMusicPlayer();
 
   const [activeTab, setActiveTab] = useState('library');
@@ -154,6 +155,7 @@ export default function Home() {
                       src={`/api/v1/songs/artwork/${firstSong.id}`}
                       alt=""
                       className="absolute inset-0 h-full w-full object-cover"
+                      loading="lazy"
                       onError={(e) => { e.currentTarget.style.display = 'none'; }}
                     />
                   ) : null}
@@ -199,6 +201,7 @@ export default function Home() {
                         src={`/api/v1/songs/artwork/${firstSong.id}`}
                         alt=""
                         className="absolute inset-0 h-full w-full object-cover transition-transform duration-250 group-hover:scale-102"
+                        loading="lazy"
                         onError={(e) => { e.currentTarget.style.display = 'none'; }}
                       />
                     ) : null}
@@ -242,6 +245,7 @@ export default function Home() {
                       src={`/api/v1/songs/artwork/${firstSong.id}`}
                       alt=""
                       className="absolute inset-0 h-full w-full object-cover"
+                      loading="lazy"
                       onError={(e) => { e.currentTarget.style.display = 'none'; }}
                     />
                   ) : null}
@@ -288,6 +292,7 @@ export default function Home() {
                         src={`/api/v1/songs/artwork/${firstSong.id}`}
                         alt=""
                         className="absolute inset-0 h-full w-full object-cover transition-transform duration-250 group-hover:scale-102"
+                        loading="lazy"
                         onError={(e) => { e.currentTarget.style.display = 'none'; }}
                       />
                     ) : null}
@@ -331,6 +336,7 @@ export default function Home() {
                       src={`/api/v1/songs/artwork/${firstSong.id}`}
                       alt=""
                       className="absolute inset-0 h-full w-full object-cover"
+                      loading="lazy"
                       onError={(e) => { e.currentTarget.style.display = 'none'; }}
                     />
                   ) : null}
@@ -455,6 +461,14 @@ export default function Home() {
 
         {/* Main Content Pane (Scrollable) */}
         <main className="flex-grow overflow-y-auto px-8 py-6">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full py-40">
+              <div className="flex flex-col items-center gap-3">
+                <div className="h-6 w-6 rounded-full border-2 border-emerald-500/30 border-t-emerald-500 animate-spin" />
+                <span className="text-[10px] text-zinc-500 font-medium">Loading library...</span>
+              </div>
+            </div>
+          ) : (
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab + (selectedArtist ? `-${selectedArtist}` : '') + (selectedAlbum ? `-${selectedAlbum}` : '') + (selectedGenre ? `-${selectedGenre}` : '')}
@@ -466,6 +480,7 @@ export default function Home() {
               {renderTabContent()}
             </motion.div>
           </AnimatePresence>
+          )}
         </main>
       </div>
 

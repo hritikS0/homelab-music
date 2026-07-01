@@ -23,6 +23,8 @@ interface MusicPlayerContextType {
 
   toggleFavorite: (id: string) => Promise<void>;
 
+  isLoading: boolean;
+
   // Scanner integrations
   isScanning: boolean;
   scanSummary: any | null;
@@ -83,6 +85,9 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [isScanning, setIsScanning] = useState(false);
   const [scanSummary, setScanSummary] = useState<any | null>(null);
   const [scanProgress, setScanProgress] = useState<string | null>(null);
+
+  // Loading state for initial fetch
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fullscreen player state
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
@@ -149,11 +154,16 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const fetchSongs = async () => {
+    setIsLoading(true);
     try {
       const data = await safeFetch('/api/v1/songs');
-      setSongs(data);
+      setSongs(
+        (data as Song[]).map((s: Song) => ({ ...s, liked: s.liked ?? false }))
+      );
     } catch (err: any) {
       setError(err.message || 'Error loading library');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -215,16 +225,8 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       console.log('[MusicPlayer] Selected song:', song.title, '(ID:', song.id, ')');
       console.log('[MusicPlayer] Stream URL is:', `/api/v1/stream/${song.id}`);
       setIsPlaying(true);
-      setTimeout(() => {
-        if (audioRef.current) {
-          console.log('[MusicPlayer] Calling play() for newly selected song');
-          audioRef.current.play().catch((err) => {
-            console.error('[MusicPlayer] play() failed:', err);
-            setIsPlaying(false);
-          });
-        }
-      }, 50);
     } else {
+      setIsPlaying(false);
       console.log('[MusicPlayer] Selected song set to null');
     }
   };
@@ -448,7 +450,8 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       console.log('[MusicPlayerEvent] oncanplay triggered');
     };
     const onError = (e: any) => {
-      console.error('[MusicPlayerEvent] onerror triggered:', e);
+      console.error('[MusicPlayerEvent] onerror triggered:', e?.message || e);
+      setIsPlaying(false);
     };
     const onEnded = () => {
       console.log('[MusicPlayerEvent] onended triggered');
@@ -538,6 +541,7 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
         currentError,
         currentProgress,
         error,
+        isLoading,
 
         // Scanner integrations
         isScanning,

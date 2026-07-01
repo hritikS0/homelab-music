@@ -66,6 +66,7 @@ export const SongRow: React.FC<SongRowProps> = ({ song, index }) => {
               src={`/api/v1/songs/artwork/${song.id}`}
               alt=""
               className="absolute inset-0 h-full w-full object-cover"
+              loading="lazy"
               onError={() => setImgError(true)}
             />
           ) : (
@@ -102,7 +103,8 @@ export const SongRow: React.FC<SongRowProps> = ({ song, index }) => {
         >
           <Heart
             size={11}
-            className={song.liked ? 'text-emerald-400 fill-emerald-400' : 'text-zinc-600 hover:text-zinc-400'}
+            className={song.liked ? 'text-emerald-400' : 'text-zinc-600 hover:text-zinc-400'}
+            fill={song.liked ? 'currentColor' : 'none'}
           />
         </button>
 

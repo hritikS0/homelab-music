@@ -126,7 +126,8 @@ export const FullscreenPlayer: React.FC<FullscreenPlayerProps> = ({ isOpen, onCl
           <img
             src={artworkUrl}
             alt=""
-            className="absolute inset-[-100px] h-[calc(100%+200px)] w-[calc(100%+200px)] object-cover filter blur-[80px] saturate-[180%] opacity-35"
+                className="absolute inset-[-100px] h-[calc(100%+200px)] w-[calc(100%+200px)] object-cover filter blur-[80px] saturate-[180%] opacity-35"
+                loading="lazy"
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-tr from-zinc-950 via-zinc-900 to-zinc-950 opacity-55" />
@@ -163,6 +164,7 @@ export const FullscreenPlayer: React.FC<FullscreenPlayerProps> = ({ isOpen, onCl
                 src={artworkUrl}
                 alt=""
                 className="absolute inset-0 h-full w-full object-cover"
+                loading="lazy"
                 onError={() => setImgError(true)}
               />
             ) : (

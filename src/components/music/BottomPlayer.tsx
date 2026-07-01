@@ -93,6 +93,7 @@ export const BottomPlayer: React.FC = () => {
                     src={`/api/v1/songs/artwork/${activeSong.id}`}
                     alt=""
                     className="absolute inset-0 h-full w-full object-cover animate-fade-in"
+                    loading="lazy"
                     onError={() => setImgError(true)}
                   />
                 ) : (

@@ -10,11 +10,17 @@ interface SearchBarProps {
 export const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   const [value, setValue] = useState('');
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (onSearch) {
+        onSearch(value);
+      }
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [value, onSearch]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
-    if (onSearch) {
-      onSearch(e.target.value);
-    }
   };
 
   useEffect(() => {

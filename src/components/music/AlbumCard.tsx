@@ -38,6 +38,7 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ song }) => {
             src={`/api/v1/songs/artwork/${song.id}`}
             alt=""
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-102"
+            loading="lazy"
             onError={() => setImgError(true)}
           />
         ) : (
@@ -57,7 +58,8 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ song }) => {
         >
           <Heart
             size={12}
-            className={song.liked ? 'text-emerald-400 fill-emerald-400' : 'text-white/40 hover:text-white/70'}
+            className={song.liked ? 'text-emerald-400' : 'text-white/40 hover:text-white/70'}
+            fill={song.liked ? 'currentColor' : 'none'}
           />
         </button>
 
